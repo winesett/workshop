@@ -377,6 +377,7 @@ export function PageBuilderPage() {
           <PageControls
             document={document}
             activePage={activePage}
+            assetMap={assetMap}
             onAddPage={() => setAddPageOpen(true)}
             onSelectPage={(pageId) =>
               {
@@ -519,6 +520,7 @@ function AssetLibraryItem({
 function PageControls({
   document,
   activePage,
+  assetMap,
   onAddPage,
   onSelectPage,
   onRenamePage,
@@ -526,6 +528,7 @@ function PageControls({
 }: {
   document: PageBuilderDocument
   activePage: PageBuilderPageModel
+  assetMap: Map<string, PageBuilderAsset>
   onAddPage: () => void
   onSelectPage: (pageId: string) => void
   onRenamePage: (page: PageBuilderPageModel) => void
@@ -559,6 +562,11 @@ function PageControls({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
+          <DropdownMenuItem
+            onSelect={() => exportPageJson(activePage, assetMap)}
+          >
+            Export JSON
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => onRenamePage(activePage)}>
             Rename page
           </DropdownMenuItem>
@@ -573,6 +581,42 @@ function PageControls({
       </DropdownMenu>
     </div>
   )
+}
+
+function exportPageJson(
+  page: PageBuilderPageModel,
+  assetMap: Map<string, PageBuilderAsset>
+) {
+  const payload = {
+    [page.name]: page.sections.map((section, index) => {
+      const asset = assetMap.get(section.assetId)
+
+      return {
+        order: index + 1,
+        sectionInstanceId: section.id,
+        assetId: section.assetId,
+        layout: asset
+          ? {
+              name: asset.name,
+              category: asset.category,
+              filename: asset.filename,
+              imagePath: asset.imagePath,
+            }
+          : null,
+        missing: !asset,
+      }
+    }),
+  }
+  const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], {
+    type: 'application/json',
+  })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+
+  link.href = url
+  link.download = `${slugify(page.name || 'page')}-layouts.json`
+  link.click()
+  URL.revokeObjectURL(url)
 }
 
 function PageSection({
@@ -835,6 +879,14 @@ function normalizeDocument(document: PageBuilderDocument): PageBuilderDocument {
 
 function readableCategory(category: string) {
   return category.replace(/-/g, ' ')
+}
+
+function slugify(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }
 
 function isPageBuilderAsset(value: unknown): value is PageBuilderAsset {

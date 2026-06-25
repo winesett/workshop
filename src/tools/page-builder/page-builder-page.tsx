@@ -93,6 +93,9 @@ export function PageBuilderPage() {
     null
   )
   const [sectionDrag, setSectionDrag] = useState<SectionDragState | null>(null)
+  const [pendingScrollSectionId, setPendingScrollSectionId] = useState<
+    string | null
+  >(null)
 
   useEffect(() => {
     let canceled = false
@@ -128,6 +131,22 @@ export function PageBuilderPage() {
   useEffect(() => {
     savePageBuilderDocument(document)
   }, [document])
+
+  useEffect(() => {
+    if (!pendingScrollSectionId) return
+
+    const sectionElement = window.document.querySelector<HTMLElement>(
+      `[data-page-builder-section-id="${pendingScrollSectionId}"]`
+    )
+
+    if (!sectionElement) return
+
+    sectionElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    })
+    setPendingScrollSectionId(null)
+  }, [document, pendingScrollSectionId])
 
   const activePage =
     document.pages.find((page) => page.id === document.activePageId) ??
@@ -174,6 +193,9 @@ export function PageBuilderPage() {
   }
 
   function addSection(assetId: string) {
+    const sectionId = crypto.randomUUID()
+    setPendingScrollSectionId(sectionId)
+
     updateDocument((current) => ({
       ...current,
       pages: current.pages.map((page) =>
@@ -182,7 +204,7 @@ export function PageBuilderPage() {
               ...page,
               sections: [
                 ...page.sections,
-                { id: crypto.randomUUID(), assetId },
+                { id: sectionId, assetId },
               ],
             }
           : page
@@ -213,6 +235,9 @@ export function PageBuilderPage() {
   function addSectionBelowSelected(assetId: string) {
     if (!selectedSection) return
 
+    const sectionId = crypto.randomUUID()
+    setPendingScrollSectionId(sectionId)
+
     updateDocument((current) => ({
       ...current,
       pages: current.pages.map((page) => {
@@ -225,7 +250,7 @@ export function PageBuilderPage() {
 
         const nextSections = [...page.sections]
         nextSections.splice(selectedIndex + 1, 0, {
-          id: crypto.randomUUID(),
+          id: sectionId,
           assetId,
         })
 

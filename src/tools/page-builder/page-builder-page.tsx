@@ -965,9 +965,9 @@ function PageControls({
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuItem
-            onSelect={() => copyReferenceLibrary(catalogAssets)}
+            onSelect={() => downloadReferenceLibrary(catalogAssets)}
           >
-            Copy Reference Library
+            Download Reference Library
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={onImportJson}>
             Import from JSON
@@ -998,19 +998,15 @@ function PageControls({
   )
 }
 
-async function copyReferenceLibrary(assets: PageBuilderAsset[]) {
+function downloadReferenceLibrary(assets: PageBuilderAsset[]) {
   const referenceLibrary = buildReferenceLibraryText(assets)
 
-  try {
-    await navigator.clipboard.writeText(referenceLibrary)
-    toast.success(
-      assets.length > 0
-        ? 'Reference library copied'
-        : 'Reference library instructions copied'
-    )
-  } catch {
-    toast.error('Could not copy reference library')
-  }
+  downloadTextFile('page-builder-reference-library.txt', referenceLibrary)
+  toast.success(
+    assets.length > 0
+      ? 'Reference library downloaded'
+      : 'Reference library instructions downloaded'
+  )
 }
 
 function buildReferenceLibraryText(assets: PageBuilderAsset[]) {

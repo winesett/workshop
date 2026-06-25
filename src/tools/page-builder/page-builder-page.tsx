@@ -129,6 +129,9 @@ export function PageBuilderPage() {
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
     null
   )
+  const [hoverPreviewAssetId, setHoverPreviewAssetId] = useState<string | null>(
+    null
+  )
   const [sectionDrag, setSectionDrag] = useState<SectionDragState | null>(null)
   const [pendingScrollSectionId, setPendingScrollSectionId] = useState<
     string | null
@@ -262,6 +265,12 @@ export function PageBuilderPage() {
     }
   }, [selectedSectionId])
 
+  useEffect(() => {
+    if (!selectedSectionId) {
+      setHoverPreviewAssetId(null)
+    }
+  }, [selectedSectionId])
+
   const activePage =
     document.pages.find((page) => page.id === document.activePageId) ??
     document.pages[0]
@@ -274,6 +283,10 @@ export function PageBuilderPage() {
       new Map(catalogState.assets.map((asset) => [asset.id, asset] as const)),
     [catalogState.assets]
   )
+  const hoverPreviewAsset =
+    selectedSection && hoverPreviewAssetId
+      ? assetMap.get(hoverPreviewAssetId)
+      : undefined
 
   const categoryGroups = useMemo(
     () => groupAssets(catalogState.assets, search),
@@ -346,6 +359,7 @@ export function PageBuilderPage() {
     if (!selectedSection) return
 
     const sectionId = crypto.randomUUID()
+    setHoverPreviewAssetId(null)
     setSelectedSectionId(sectionId)
     setPendingScrollSectionId(sectionId)
 
@@ -371,6 +385,8 @@ export function PageBuilderPage() {
   }
 
   function handleAssetAction(assetId: string) {
+    setHoverPreviewAssetId(null)
+
     if (selectedSection) {
       replaceSection(assetId)
       return
@@ -560,7 +576,10 @@ export function PageBuilderPage() {
                   variant='ghost'
                   size='icon'
                   className='size-8'
-                  onClick={() => setSelectedSectionId(null)}
+                  onClick={() => {
+                    setSelectedSectionId(null)
+                    setHoverPreviewAssetId(null)
+                  }}
                 >
                   <X />
                   <span className='sr-only'>Close Replace mode</span>
@@ -638,6 +657,21 @@ export function PageBuilderPage() {
                                 ? () => addSectionBelowSelected(asset.id)
                                 : undefined
                             }
+                            onPreviewStart={
+                              selectedSection
+                                ? () => setHoverPreviewAssetId(asset.id)
+                                : undefined
+                            }
+                            onPreviewEnd={
+                              selectedSection
+                                ? () =>
+                                    setHoverPreviewAssetId((currentAssetId) =>
+                                      currentAssetId === asset.id
+                                        ? null
+                                        : currentAssetId
+                                    )
+                                : undefined
+                            }
                           />
                         ))}
                       </div>
@@ -668,6 +702,7 @@ export function PageBuilderPage() {
             onTogglePageViewMode={togglePageViewMode}
             onSelectPage={(pageId) => {
               setSelectedSectionId(null)
+              setHoverPreviewAssetId(null)
               updateDocument((current) => ({
                 ...current,
                 activePageId: pageId,
@@ -680,7 +715,10 @@ export function PageBuilderPage() {
           <div
             ref={pageWorkspaceRef}
             className='min-h-0 flex-1 overflow-auto px-8 py-8'
-            onClick={() => setSelectedSectionId(null)}
+            onClick={() => {
+              setSelectedSectionId(null)
+              setHoverPreviewAssetId(null)
+            }}
           >
             <div
               ref={pageFrameRef}
@@ -710,6 +748,11 @@ export function PageBuilderPage() {
                     key={section.id}
                     sectionId={section.id}
                     asset={assetMap.get(section.assetId)}
+                    previewAsset={
+                      section.id === selectedSection?.id
+                        ? hoverPreviewAsset
+                        : undefined
+                    }
                     sectionName={
                       assetMap.get(section.assetId)?.name ??
                       section.unresolved?.name ??
@@ -853,15 +896,25 @@ function AssetLibraryItem({
   onAction,
   secondaryActionLabel,
   onSecondaryAction,
+  onPreviewStart,
+  onPreviewEnd,
 }: {
   asset: PageBuilderAsset
   actionLabel: string
   onAction: () => void
   secondaryActionLabel?: string
   onSecondaryAction?: () => void
+  onPreviewStart?: () => void
+  onPreviewEnd?: () => void
 }) {
   return (
-    <div className='group rounded-md border bg-card text-card-foreground transition-colors hover:border-primary/35 hover:bg-accent/30 hover:shadow-sm'>
+    <div
+      className='group rounded-md border bg-card text-card-foreground transition-colors hover:border-primary/35 hover:bg-accent/30 hover:shadow-sm'
+      onMouseEnter={onPreviewStart}
+      onMouseLeave={onPreviewEnd}
+      onFocus={onPreviewStart}
+      onBlur={onPreviewEnd}
+    >
       <div className='overflow-hidden rounded-t-md bg-muted'>
         <img
           src={asset.imagePath}
@@ -1589,6 +1642,7 @@ function downloadTextFile(filename: string, text: string) {
 function PageSection({
   sectionId,
   asset,
+  previewAsset,
   sectionName,
   unresolvedLabel,
   selected,
@@ -1606,6 +1660,7 @@ function PageSection({
 }: {
   sectionId: string
   asset?: PageBuilderAsset
+  previewAsset?: PageBuilderAsset
   sectionName: string
   unresolvedLabel?: string
   selected: boolean
@@ -1621,6 +1676,8 @@ function PageSection({
   onMoveDown: () => void
   onRemove: () => void
 }) {
+  const displayAsset = previewAsset ?? asset
+
   return (
     <div
       data-page-builder-section-id={sectionId}
@@ -1637,10 +1694,10 @@ function PageSection({
         onSelect()
       }}
     >
-      {asset ? (
+      {displayAsset ? (
         <img
-          src={asset.imagePath}
-          alt={asset.name}
+          src={displayAsset.imagePath}
+          alt={displayAsset.name}
           className='block h-auto w-full'
         />
       ) : (

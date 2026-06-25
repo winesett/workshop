@@ -1,6 +1,5 @@
 import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Search } from '@/components/search'
@@ -12,7 +11,6 @@ export function CanvasPage() {
       <Header>
         <Search className='me-auto' />
         <ThemeSwitch />
-        <ConfigDrawer />
       </Header>
 
       <Main fixed fluid className='p-0'>

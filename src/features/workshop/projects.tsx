@@ -1,6 +1,5 @@
 import { FolderKanban, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Search } from '@/components/search'
@@ -12,7 +11,6 @@ export function ProjectsPage() {
       <Header>
         <Search className='me-auto' />
         <ThemeSwitch />
-        <ConfigDrawer />
       </Header>
 
       <Main>

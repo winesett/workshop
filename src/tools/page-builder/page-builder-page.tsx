@@ -9,7 +9,6 @@ import {
   ArrowDown,
   ArrowUp,
   FilePlus,
-  GripVertical,
   ImageOff,
   MoreHorizontal,
   Plus,
@@ -817,26 +816,23 @@ function PageSection({
       )}
       {selected && (
         <>
-          <div className='absolute left-0 top-1/2 h-10 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600 shadow-sm' />
+          <div
+            draggable
+            role='button'
+            tabIndex={0}
+            aria-label='Drag section to reorder'
+            className='absolute left-0 top-1/2 h-10 w-2 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full bg-purple-600 shadow-sm active:cursor-grabbing'
+            onClick={(event) => event.stopPropagation()}
+            onDragStart={(event) => {
+              event.stopPropagation()
+              onDragStart(event)
+            }}
+            onDragEnd={onDragEnd}
+          />
           <div
             className='absolute right-3 top-3 flex items-center gap-1 rounded-md border border-purple-300 bg-background/95 p-1 shadow-sm'
             onClick={(event) => event.stopPropagation()}
           >
-            <div
-              draggable
-              role='button'
-              tabIndex={0}
-              aria-label='Drag section to reorder'
-              className='flex size-7 cursor-grab items-center justify-center rounded text-purple-700 hover:bg-purple-100 active:cursor-grabbing dark:text-purple-300 dark:hover:bg-purple-950/40'
-              onClick={(event) => event.stopPropagation()}
-              onDragStart={(event) => {
-                event.stopPropagation()
-                onDragStart(event)
-              }}
-              onDragEnd={onDragEnd}
-            >
-              <GripVertical className='size-4' />
-            </div>
             <span className='px-2 text-xs font-medium text-purple-700 dark:text-purple-300'>
               {sectionName}
             </span>

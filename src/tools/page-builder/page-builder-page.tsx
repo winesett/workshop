@@ -862,18 +862,14 @@ function AssetLibraryItem({
 }) {
   return (
     <div className='group rounded-md border bg-card text-card-foreground'>
-      <button
-        type='button'
-        className='block w-full overflow-hidden rounded-t-md bg-muted text-start'
-        onClick={onAction}
-      >
+      <div className='overflow-hidden rounded-t-md bg-muted'>
         <img
           src={asset.imagePath}
           alt={asset.name}
           loading='lazy'
-          className='h-auto w-full transition-opacity group-hover:opacity-90'
+          className='h-auto w-full'
         />
-      </button>
+      </div>
       <div className='space-y-2 p-2'>
         <div className='min-w-0'>
           <p className='truncate text-sm font-medium'>{asset.name}</p>

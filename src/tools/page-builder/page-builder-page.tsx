@@ -230,6 +230,35 @@ export function PageBuilderPage() {
     }
   }, [document, pageViewMode])
 
+  useEffect(() => {
+    if (!selectedSectionId) return
+
+    const sectionId = selectedSectionId
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (isTextEntryTarget(event.target)) return
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+        return
+      }
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault()
+        moveSection(sectionId, -1)
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault()
+        moveSection(sectionId, 1)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [selectedSectionId])
+
   const activePage =
     document.pages.find((page) => page.id === document.activePageId) ??
     document.pages[0]
@@ -1127,6 +1156,15 @@ function PreviewMetric({ label, value }: { label: string; value: number }) {
       <p className='text-xs text-muted-foreground'>{label}</p>
       <p className='text-base font-semibold'>{value}</p>
     </div>
+  )
+}
+
+function isTextEntryTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false
+
+  return (
+    target.isContentEditable ||
+    target.matches('input, textarea, select, [role="textbox"]')
   )
 }
 

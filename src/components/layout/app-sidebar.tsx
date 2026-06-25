@@ -6,6 +6,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { AppTitle } from './app-title'
 import { sidebarData } from './data/sidebar-data'
@@ -17,6 +18,7 @@ export function AppSidebar() {
     <Sidebar collapsible={collapsible} variant={variant}>
       <SidebarHeader>
         <AppTitle />
+        <Search className='mx-2 w-auto flex-none group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:px-0' />
       </SidebarHeader>
       <SidebarContent>
         {sidebarData.navGroups.map((props) => (

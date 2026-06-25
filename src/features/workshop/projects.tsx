@@ -2,14 +2,11 @@ import { FolderKanban, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { Search } from '@/components/search'
 
 export function ProjectsPage() {
   return (
     <>
-      <Header>
-        <Search className='me-auto' />
-      </Header>
+      <Header />
 
       <Main>
         <div className='mb-6 flex flex-wrap items-start justify-between gap-4'>

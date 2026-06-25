@@ -18,7 +18,7 @@ export function AppSidebar() {
     <Sidebar collapsible={collapsible} variant={variant}>
       <SidebarHeader>
         <AppTitle />
-        <Search className='mx-2 w-auto flex-none group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:px-0' />
+        <Search className='mx-2 max-w-[calc(100%-1rem)] flex-none sm:w-auto lg:w-auto xl:w-auto group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:px-0' />
       </SidebarHeader>
       <SidebarContent>
         {sidebarData.navGroups.map((props) => (

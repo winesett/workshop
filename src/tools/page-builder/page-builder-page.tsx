@@ -9,6 +9,7 @@ import {
   ArrowDown,
   ArrowUp,
   FilePlus,
+  GripVertical,
   ImageOff,
   MoreHorizontal,
   Plus,
@@ -821,14 +822,16 @@ function PageSection({
             role='button'
             tabIndex={0}
             aria-label='Drag section to reorder'
-            className='absolute left-0 top-1/2 h-10 w-2 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full bg-purple-600 shadow-sm active:cursor-grabbing'
+            className='absolute left-0 top-1/2 flex h-11 w-7 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center rounded-full bg-purple-600 text-white shadow-sm ring-2 ring-background active:cursor-grabbing'
             onClick={(event) => event.stopPropagation()}
             onDragStart={(event) => {
               event.stopPropagation()
               onDragStart(event)
             }}
             onDragEnd={onDragEnd}
-          />
+          >
+            <GripVertical className='size-4' />
+          </div>
           <div
             className='absolute right-3 top-3 flex items-center gap-1 rounded-md border border-purple-300 bg-background/95 p-1 shadow-sm'
             onClick={(event) => event.stopPropagation()}

@@ -27,7 +27,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import {
   createProject,
@@ -68,8 +67,6 @@ export function ProjectsPage() {
 
   return (
     <>
-      <Header />
-
       <Main>
         <div className='mb-6 flex flex-wrap items-start justify-between gap-4'>
           <div className='space-y-1'>

@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowLeft, FolderKanban } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { getProject } from './projects-storage'
 
@@ -10,8 +9,6 @@ export function ProjectDetailPage({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <Header />
-
       <Main>
         <Button asChild variant='ghost' className='mb-6 px-0'>
           <Link to='/workshop'>

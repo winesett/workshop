@@ -6,15 +6,12 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { AppConfigurationPanel } from '@/components/config-drawer'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
-import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { AppearanceForm } from '@/features/settings/appearance/appearance-form'
 
 export function SettingsPage() {
   return (
     <>
-      <Header />
-
       <Main fixed>
         <div className='space-y-0.5'>
           <h1 className='text-2xl font-bold tracking-tight'>Settings</h1>

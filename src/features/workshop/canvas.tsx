@@ -1,4 +1,5 @@
-import { PenTool } from 'lucide-react'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -14,26 +15,10 @@ export function CanvasPage() {
         <ConfigDrawer />
       </Header>
 
-      <Main>
-        <div className='mb-6 space-y-1'>
-          <h1 className='text-2xl font-bold tracking-tight'>Canvas</h1>
-          <p className='text-muted-foreground'>
-            A spatial workspace for future Workshop experiments.
-          </p>
+      <Main fixed fluid className='p-0'>
+        <div className='relative min-h-0 flex-1 overflow-hidden'>
+          <Tldraw />
         </div>
-
-        <section className='flex min-h-80 flex-col items-center justify-center rounded-lg border border-dashed bg-muted/20 px-6 py-12 text-center'>
-          <div className='mb-4 flex size-12 items-center justify-center rounded-lg border bg-background'>
-            <PenTool className='size-6 text-muted-foreground' />
-          </div>
-          <h2 className='text-lg font-semibold'>
-            Canvas workspace coming next
-          </h2>
-          <p className='mt-2 max-w-md text-sm text-muted-foreground'>
-            A tldraw workspace will be added in the next cycle. This page is
-            only a placeholder inside the application shell.
-          </p>
-        </section>
       </Main>
     </>
   )

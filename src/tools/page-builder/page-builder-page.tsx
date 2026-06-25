@@ -724,7 +724,7 @@ function PageControls({
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuItem
-            onSelect={() => copyPageBuilderPrompt(document, assetMap)}
+            onSelect={() => copyPageBuilderPrompt(activePage, assetMap)}
           >
             Copy Figma prompt
           </DropdownMenuItem>
@@ -750,10 +750,10 @@ function PageControls({
 }
 
 async function copyPageBuilderPrompt(
-  document: PageBuilderDocument,
+  page: PageBuilderPageModel,
   assetMap: Map<string, PageBuilderAsset>
 ) {
-  const prompt = buildPageBuilderPrompt(document, assetMap)
+  const prompt = buildPageBuilderPrompt(page, assetMap)
 
   try {
     await navigator.clipboard.writeText(prompt)
@@ -763,7 +763,7 @@ async function copyPageBuilderPrompt(
 }
 
 function buildPageBuilderPrompt(
-  document: PageBuilderDocument,
+  page: PageBuilderPageModel,
   assetMap: Map<string, PageBuilderAsset>
 ) {
   const lines = [
@@ -772,21 +772,19 @@ function buildPageBuilderPrompt(
     'Use desktop components. Create one frame per page. Assemble sections in the exact order listed. Match each section by category and layout name. If an exact component is unavailable, put in a missing element placeholder for that section.',
   ]
 
-  for (const page of document.pages) {
-    lines.push('', `Page: ${page.name}`)
+  lines.push('', `Page: ${page.name}`)
 
-    if (page.sections.length === 0) {
-      lines.push('No sections selected.')
-      continue
-    }
+  if (page.sections.length === 0) {
+    lines.push('No sections selected.')
+    return lines.join('\n')
+  }
 
-    for (const [index, section] of page.sections.entries()) {
-      const asset = assetMap.get(section.assetId)
-      const category = asset?.category ?? 'Missing asset'
-      const name = asset?.name ?? section.assetId
+  for (const [index, section] of page.sections.entries()) {
+    const asset = assetMap.get(section.assetId)
+    const category = asset?.category ?? 'Missing asset'
+    const name = asset?.name ?? section.assetId
 
-      lines.push(`${index + 1}. ${category} / ${name}`)
-    }
+    lines.push(`${index + 1}. ${category} / ${name}`)
   }
 
   return lines.join('\n')

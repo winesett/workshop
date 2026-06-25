@@ -14,6 +14,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedWorkshopIndexRouteImport } from './routes/_authenticated/workshop/index'
 import { Route as AuthenticatedWorkshopSettingsRouteImport } from './routes/_authenticated/workshop/settings'
 import { Route as AuthenticatedWorkshopCanvasRouteImport } from './routes/_authenticated/workshop/canvas'
+import { Route as AuthenticatedWorkshopProjectsProjectIdRouteImport } from './routes/_authenticated/workshop/projects/$projectId'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -42,18 +43,26 @@ const AuthenticatedWorkshopCanvasRoute =
     path: '/workshop/canvas',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedWorkshopProjectsProjectIdRoute =
+  AuthenticatedWorkshopProjectsProjectIdRouteImport.update({
+    id: '/workshop/projects/$projectId',
+    path: '/workshop/projects/$projectId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/workshop/canvas': typeof AuthenticatedWorkshopCanvasRoute
   '/workshop/settings': typeof AuthenticatedWorkshopSettingsRoute
   '/workshop/': typeof AuthenticatedWorkshopIndexRoute
+  '/workshop/projects/$projectId': typeof AuthenticatedWorkshopProjectsProjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/workshop/canvas': typeof AuthenticatedWorkshopCanvasRoute
   '/workshop/settings': typeof AuthenticatedWorkshopSettingsRoute
   '/workshop': typeof AuthenticatedWorkshopIndexRoute
+  '/workshop/projects/$projectId': typeof AuthenticatedWorkshopProjectsProjectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,12 +71,23 @@ export interface FileRoutesById {
   '/_authenticated/workshop/canvas': typeof AuthenticatedWorkshopCanvasRoute
   '/_authenticated/workshop/settings': typeof AuthenticatedWorkshopSettingsRoute
   '/_authenticated/workshop/': typeof AuthenticatedWorkshopIndexRoute
+  '/_authenticated/workshop/projects/$projectId': typeof AuthenticatedWorkshopProjectsProjectIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/workshop/canvas' | '/workshop/settings' | '/workshop/'
+  fullPaths:
+    | '/'
+    | '/workshop/canvas'
+    | '/workshop/settings'
+    | '/workshop/'
+    | '/workshop/projects/$projectId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/workshop/canvas' | '/workshop/settings' | '/workshop'
+  to:
+    | '/'
+    | '/workshop/canvas'
+    | '/workshop/settings'
+    | '/workshop'
+    | '/workshop/projects/$projectId'
   id:
     | '__root__'
     | '/_authenticated'
@@ -75,6 +95,7 @@ export interface FileRouteTypes {
     | '/_authenticated/workshop/canvas'
     | '/_authenticated/workshop/settings'
     | '/_authenticated/workshop/'
+    | '/_authenticated/workshop/projects/$projectId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -118,6 +139,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkshopCanvasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/workshop/projects/$projectId': {
+      id: '/_authenticated/workshop/projects/$projectId'
+      path: '/workshop/projects/$projectId'
+      fullPath: '/workshop/projects/$projectId'
+      preLoaderRoute: typeof AuthenticatedWorkshopProjectsProjectIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -126,6 +154,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedWorkshopCanvasRoute: typeof AuthenticatedWorkshopCanvasRoute
   AuthenticatedWorkshopSettingsRoute: typeof AuthenticatedWorkshopSettingsRoute
   AuthenticatedWorkshopIndexRoute: typeof AuthenticatedWorkshopIndexRoute
+  AuthenticatedWorkshopProjectsProjectIdRoute: typeof AuthenticatedWorkshopProjectsProjectIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -133,6 +162,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedWorkshopCanvasRoute: AuthenticatedWorkshopCanvasRoute,
   AuthenticatedWorkshopSettingsRoute: AuthenticatedWorkshopSettingsRoute,
   AuthenticatedWorkshopIndexRoute: AuthenticatedWorkshopIndexRoute,
+  AuthenticatedWorkshopProjectsProjectIdRoute:
+    AuthenticatedWorkshopProjectsProjectIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

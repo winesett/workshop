@@ -203,6 +203,30 @@ export function PageBuilderPage() {
     }))
   }
 
+  function addSectionBelowSelected(assetId: string) {
+    if (!selectedSection) return
+
+    updateDocument((current) => ({
+      ...current,
+      pages: current.pages.map((page) => {
+        if (page.id !== current.activePageId) return page
+
+        const selectedIndex = page.sections.findIndex(
+          (section) => section.id === selectedSection.id
+        )
+        if (selectedIndex < 0) return page
+
+        const nextSections = [...page.sections]
+        nextSections.splice(selectedIndex + 1, 0, {
+          id: crypto.randomUUID(),
+          assetId,
+        })
+
+        return { ...page, sections: nextSections }
+      }),
+    }))
+  }
+
   function handleAssetAction(assetId: string) {
     if (selectedSection) {
       replaceSection(assetId)
@@ -410,6 +434,14 @@ export function PageBuilderPage() {
                         asset={asset}
                         actionLabel={selectedSection ? 'Replace' : 'Add'}
                         onAction={() => handleAssetAction(asset.id)}
+                        secondaryActionLabel={
+                          selectedSection ? 'Add below' : undefined
+                        }
+                        onSecondaryAction={
+                          selectedSection
+                            ? () => addSectionBelowSelected(asset.id)
+                            : undefined
+                        }
                       />
                     ))}
                   </div>
@@ -589,10 +621,14 @@ function AssetLibraryItem({
   asset,
   actionLabel,
   onAction,
+  secondaryActionLabel,
+  onSecondaryAction,
 }: {
   asset: PageBuilderAsset
   actionLabel: string
   onAction: () => void
+  secondaryActionLabel?: string
+  onSecondaryAction?: () => void
 }) {
   return (
     <div className='group rounded-md border bg-card text-card-foreground'>
@@ -615,9 +651,21 @@ function AssetLibraryItem({
             {readableCategory(asset.category)}
           </p>
         </div>
-        <Button type='button' size='sm' variant='outline' onClick={onAction}>
-          {actionLabel}
-        </Button>
+        <div className='flex shrink-0 items-center gap-1.5'>
+          {secondaryActionLabel && onSecondaryAction && (
+            <Button
+              type='button'
+              size='sm'
+              variant='ghost'
+              onClick={onSecondaryAction}
+            >
+              {secondaryActionLabel}
+            </Button>
+          )}
+          <Button type='button' size='sm' variant='outline' onClick={onAction}>
+            {actionLabel}
+          </Button>
+        </div>
       </div>
     </div>
   )

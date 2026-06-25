@@ -20,6 +20,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -658,6 +659,9 @@ export function PageBuilderPage() {
             document={document}
             activePage={activePage}
             assetMap={assetMap}
+            catalogAssets={
+              catalogState.status === 'ready' ? catalogState.assets : []
+            }
             pageViewMode={pageViewMode}
             onAddPage={() => setAddPageOpen(true)}
             onImportJson={() => setImportDialogOpen(true)}
@@ -901,6 +905,7 @@ function PageControls({
   document,
   activePage,
   assetMap,
+  catalogAssets,
   pageViewMode,
   onAddPage,
   onImportJson,
@@ -912,6 +917,7 @@ function PageControls({
   document: PageBuilderDocument
   activePage: PageBuilderPageModel
   assetMap: Map<string, PageBuilderAsset>
+  catalogAssets: PageBuilderAsset[]
   pageViewMode: PageViewMode
   onAddPage: () => void
   onImportJson: () => void
@@ -962,6 +968,11 @@ function PageControls({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
+          <DropdownMenuItem
+            onSelect={() => copyReferenceLibrary(catalogAssets)}
+          >
+            Copy Reference Library
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={onImportJson}>
             Import from JSON
           </DropdownMenuItem>
@@ -989,6 +1000,57 @@ function PageControls({
       </DropdownMenu>
     </div>
   )
+}
+
+async function copyReferenceLibrary(assets: PageBuilderAsset[]) {
+  const referenceLibrary = buildReferenceLibraryText(assets)
+
+  try {
+    await navigator.clipboard.writeText(referenceLibrary)
+    toast.success(
+      assets.length > 0
+        ? 'Reference library copied'
+        : 'Reference library instructions copied'
+    )
+  } catch {
+    toast.error('Could not copy reference library')
+  }
+}
+
+function buildReferenceLibraryText(assets: PageBuilderAsset[]) {
+  if (assets.length === 0) {
+    return [
+      'No Page Builder reference library is available.',
+      '',
+      'Run:',
+      SYNC_COMMAND,
+      '',
+      'Expected source:',
+      SOURCE_LIBRARY_PATH,
+    ].join('\n')
+  }
+
+  const groups = groupAssets(assets, '')
+  const lines = [
+    `Reference library: ${groups.length} categories, ${assets.length} desktop sections.`,
+    '',
+    `Use only these Page Builder section references when creating ${ASSEMBLY_SCHEMA} JSON.`,
+    '',
+    'Format each section reference as:',
+    'Category / Section Name',
+    '',
+    'Available sections:',
+  ]
+
+  for (const group of groups) {
+    lines.push('', group.category)
+
+    for (const asset of group.assets) {
+      lines.push(`- ${asset.category} / ${asset.name}`)
+    }
+  }
+
+  return lines.join('\n')
 }
 
 function ImportJsonDialog({

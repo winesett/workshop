@@ -2,7 +2,9 @@ import {
   type FormEvent,
   type PointerEvent as ReactPointerEvent,
   useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import {
@@ -76,6 +78,8 @@ type SectionDragState = {
   currentY: number
 }
 
+type PageViewMode = 'normal' | 'birdseye'
+
 type ImportMode = 'replace' | 'append'
 
 type ImportSectionRequest = {
@@ -126,6 +130,10 @@ export function PageBuilderPage() {
   const [pendingScrollSectionId, setPendingScrollSectionId] = useState<
     string | null
   >(null)
+  const [pageViewMode, setPageViewMode] = useState<PageViewMode>('normal')
+  const [birdseyeScale, setBirdseyeScale] = useState(1)
+  const pageWorkspaceRef = useRef<HTMLDivElement>(null)
+  const pageFrameRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let canceled = false
@@ -177,6 +185,50 @@ export function PageBuilderPage() {
     })
     setPendingScrollSectionId(null)
   }, [document, pendingScrollSectionId])
+
+  useLayoutEffect(() => {
+    if (pageViewMode === 'normal') {
+      setBirdseyeScale(1)
+      return
+    }
+
+    const updateScale = () => {
+      const workspaceElement = pageWorkspaceRef.current
+      const pageElement = pageFrameRef.current
+      if (!workspaceElement || !pageElement) return
+
+      const pageWidth = pageElement.offsetWidth
+      const pageHeight = pageElement.scrollHeight
+      if (pageWidth === 0 || pageHeight === 0) return
+
+      const availableWidth = Math.max(1, workspaceElement.clientWidth - 32)
+      const availableHeight = Math.max(1, workspaceElement.clientHeight - 32)
+      const nextScale = Math.min(
+        1,
+        availableWidth / pageWidth,
+        availableHeight / pageHeight
+      )
+
+      setBirdseyeScale((currentScale) =>
+        Math.abs(currentScale - nextScale) > 0.005
+          ? Math.max(0.1, nextScale)
+          : currentScale
+      )
+    }
+
+    updateScale()
+
+    const resizeObserver = new ResizeObserver(updateScale)
+    if (pageWorkspaceRef.current)
+      resizeObserver.observe(pageWorkspaceRef.current)
+    if (pageFrameRef.current) resizeObserver.observe(pageFrameRef.current)
+    window.addEventListener('resize', updateScale)
+
+    return () => {
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', updateScale)
+    }
+  }, [document, pageViewMode])
 
   const activePage =
     document.pages.find((page) => page.id === document.activePageId) ??
@@ -410,6 +462,21 @@ export function PageBuilderPage() {
     })
   }
 
+  function togglePageViewMode() {
+    const nextMode = pageViewMode === 'birdseye' ? 'normal' : 'birdseye'
+    setPageViewMode(nextMode)
+
+    if (nextMode === 'birdseye') {
+      window.requestAnimationFrame(() => {
+        pageWorkspaceRef.current?.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'smooth',
+        })
+      })
+    }
+  }
+
   function importPages(previewPages: ImportPagePreview[], mode: ImportMode) {
     const importedPages = createImportedPages(previewPages)
     if (importedPages.length === 0) return
@@ -560,8 +627,10 @@ export function PageBuilderPage() {
             document={document}
             activePage={activePage}
             assetMap={assetMap}
+            pageViewMode={pageViewMode}
             onAddPage={() => setAddPageOpen(true)}
             onImportJson={() => setImportDialogOpen(true)}
+            onTogglePageViewMode={togglePageViewMode}
             onSelectPage={(pageId) => {
               setSelectedSectionId(null)
               updateDocument((current) => ({
@@ -574,10 +643,22 @@ export function PageBuilderPage() {
           />
 
           <div
+            ref={pageWorkspaceRef}
             className='min-h-0 flex-1 overflow-auto px-8 py-8'
             onClick={() => setSelectedSectionId(null)}
           >
-            <div className='mx-auto w-full max-w-5xl bg-background shadow-sm ring-1 ring-border'>
+            <div
+              ref={pageFrameRef}
+              className='mx-auto w-full max-w-5xl bg-background shadow-sm ring-1 ring-border transition-transform duration-200 ease-out'
+              style={
+                pageViewMode === 'birdseye'
+                  ? {
+                      transform: `scale(${birdseyeScale})`,
+                      transformOrigin: 'top center',
+                    }
+                  : undefined
+              }
+            >
               {activePage.sections.length === 0 ? (
                 <div className='flex min-h-[520px] flex-col items-center justify-center px-6 py-16 text-center'>
                   <FilePlus className='mb-4 size-10 text-muted-foreground' />
@@ -789,8 +870,10 @@ function PageControls({
   document,
   activePage,
   assetMap,
+  pageViewMode,
   onAddPage,
   onImportJson,
+  onTogglePageViewMode,
   onSelectPage,
   onRenamePage,
   onDeletePage,
@@ -798,8 +881,10 @@ function PageControls({
   document: PageBuilderDocument
   activePage: PageBuilderPageModel
   assetMap: Map<string, PageBuilderAsset>
+  pageViewMode: PageViewMode
   onAddPage: () => void
   onImportJson: () => void
+  onTogglePageViewMode: () => void
   onSelectPage: (pageId: string) => void
   onRenamePage: (page: PageBuilderPageModel) => void
   onDeletePage: (page: PageBuilderPageModel) => void
@@ -823,6 +908,14 @@ function PageControls({
       <Button type='button' variant='outline' size='sm' onClick={onAddPage}>
         <Plus />
         Page
+      </Button>
+      <Button
+        type='button'
+        variant='outline'
+        size='sm'
+        onClick={onTogglePageViewMode}
+      >
+        {pageViewMode === 'birdseye' ? 'Normal' : 'Birdseye'}
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

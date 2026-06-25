@@ -1,6 +1,6 @@
 import {
-  type DragEvent,
   type FormEvent,
+  type PointerEvent as ReactPointerEvent,
   useEffect,
   useMemo,
   useState,
@@ -62,22 +62,16 @@ const naturalSort = new Intl.Collator(undefined, {
   sensitivity: 'base',
 })
 
-let transparentDragImage: HTMLImageElement | null = null
-
-function getTransparentDragImage() {
-  if (!transparentDragImage) {
-    transparentDragImage = new Image()
-    transparentDragImage.src =
-      'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
-  }
-
-  return transparentDragImage
-}
-
 type CatalogState =
   | { status: 'loading'; assets: PageBuilderAsset[] }
   | { status: 'ready'; assets: PageBuilderAsset[] }
   | { status: 'missing'; assets: PageBuilderAsset[] }
+
+type SectionDragState = {
+  sectionId: string
+  startY: number
+  currentY: number
+}
 
 export function PageBuilderPage() {
   const [catalogState, setCatalogState] = useState<CatalogState>({
@@ -97,7 +91,7 @@ export function PageBuilderPage() {
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
     null
   )
-  const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null)
+  const [sectionDrag, setSectionDrag] = useState<SectionDragState | null>(null)
 
   useEffect(() => {
     let canceled = false
@@ -464,44 +458,39 @@ export function PageBuilderPage() {
                 activePage.sections.map((section, index) => (
                   <PageSection
                     key={section.id}
+                    sectionId={section.id}
                     asset={assetMap.get(section.assetId)}
                     sectionName={`Section ${index + 1}`}
                     selected={section.id === selectedSection?.id}
+                    dragging={sectionDrag?.sectionId === section.id}
+                    dragOffsetY={
+                      sectionDrag?.sectionId === section.id
+                        ? sectionDrag.currentY - sectionDrag.startY
+                        : 0
+                    }
                     isFirst={index === 0}
                     isLast={index === activePage.sections.length - 1}
                     onSelect={() => setSelectedSectionId(section.id)}
                     onDeselect={() => setSelectedSectionId(null)}
-                    onDragStart={(event) => {
-                      event.dataTransfer.effectAllowed = 'move'
-                      event.dataTransfer.setDragImage(
-                        getTransparentDragImage(),
-                        0,
-                        0
-                      )
-                      event.dataTransfer.setData('text/plain', section.id)
-                      setDraggedSectionId(section.id)
+                    onDragHandlePointerDown={(event) => {
+                      event.currentTarget.setPointerCapture(event.pointerId)
                       setSelectedSectionId(section.id)
+                      setSectionDrag({
+                        sectionId: section.id,
+                        startY: event.clientY,
+                        currentY: event.clientY,
+                      })
                     }}
-                    onDragEnd={() => setDraggedSectionId(null)}
-                    onDrop={(event) => {
-                      const sourceSectionId =
-                        event.dataTransfer.getData('text/plain') ||
-                        draggedSectionId
-                      const rect = event.currentTarget.getBoundingClientRect()
-                      const placement =
-                        event.clientY < rect.top + rect.height / 2
-                          ? 'before'
-                          : 'after'
-
-                      if (sourceSectionId) {
-                        moveSectionToTarget(
-                          sourceSectionId,
-                          section.id,
-                          placement
-                        )
-                      }
-
-                      setDraggedSectionId(null)
+                    onDragHandlePointerMove={(event) => {
+                      setSectionDrag((current) =>
+                        current?.sectionId === section.id
+                          ? { ...current, currentY: event.clientY }
+                          : current
+                      )
+                    }}
+                    onDragHandlePointerEnd={(event) => {
+                      finishSectionPointerDrag(section.id, event.clientY)
+                      setSectionDrag(null)
                     }}
                     onMoveUp={() => moveSection(section.id, -1)}
                     onMoveDown={() => moveSection(section.id, 1)}
@@ -564,6 +553,36 @@ export function PageBuilderPage() {
       />
     </Main>
   )
+
+  function finishSectionPointerDrag(sectionId: string, clientY: number) {
+    const sectionElements = Array.from(
+      window.document.querySelectorAll<HTMLElement>(
+        '[data-page-builder-section-id]'
+      )
+    )
+    const targetElements = sectionElements.filter(
+      (element) => element.dataset.pageBuilderSectionId !== sectionId
+    )
+
+    if (targetElements.length === 0) return
+
+    for (const targetElement of targetElements) {
+      const rect = targetElement.getBoundingClientRect()
+      const targetId = targetElement.dataset.pageBuilderSectionId
+
+      if (targetId && clientY < rect.top + rect.height / 2) {
+        moveSectionToTarget(sectionId, targetId, 'before')
+        return
+      }
+    }
+
+    const lastTarget = targetElements[targetElements.length - 1]
+    const lastTargetId = lastTarget.dataset.pageBuilderSectionId
+
+    if (lastTargetId) {
+      moveSectionToTarget(sectionId, lastTargetId, 'after')
+    }
+  }
 }
 
 function AssetLibraryItem({
@@ -768,53 +787,54 @@ function downloadTextFile(filename: string, text: string) {
 }
 
 function PageSection({
+  sectionId,
   asset,
   sectionName,
   selected,
+  dragging,
+  dragOffsetY,
   isFirst,
   isLast,
   onSelect,
   onDeselect,
-  onDragStart,
-  onDragEnd,
-  onDrop,
+  onDragHandlePointerDown,
+  onDragHandlePointerMove,
+  onDragHandlePointerEnd,
   onMoveUp,
   onMoveDown,
   onRemove,
 }: {
+  sectionId: string
   asset?: PageBuilderAsset
   sectionName: string
   selected: boolean
+  dragging: boolean
+  dragOffsetY: number
   isFirst: boolean
   isLast: boolean
   onSelect: () => void
   onDeselect: () => void
-  onDragStart: (event: DragEvent<HTMLDivElement>) => void
-  onDragEnd: () => void
-  onDrop: (event: DragEvent<HTMLDivElement>) => void
+  onDragHandlePointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => void
+  onDragHandlePointerMove: (event: ReactPointerEvent<HTMLButtonElement>) => void
+  onDragHandlePointerEnd: (event: ReactPointerEvent<HTMLButtonElement>) => void
   onMoveUp: () => void
   onMoveDown: () => void
   onRemove: () => void
 }) {
   return (
     <div
+      data-page-builder-section-id={sectionId}
       className={`group relative border-b last:border-b-0 ${
         selected
-          ? 'z-10 ring-2 ring-purple-500'
+          ? `z-10 ring-2 ring-purple-500 ${dragging ? 'shadow-lg' : ''}`
           : 'hover:ring-2 hover:ring-purple-500/20'
       }`}
+      style={{
+        transform: dragging ? `translateY(${dragOffsetY}px)` : undefined,
+      }}
       onClick={(event) => {
         event.stopPropagation()
         onSelect()
-      }}
-      onDragOver={(event) => {
-        event.preventDefault()
-        event.dataTransfer.dropEffect = 'move'
-      }}
-      onDrop={(event) => {
-        event.preventDefault()
-        event.stopPropagation()
-        onDrop(event)
       }}
     >
       {asset ? (
@@ -834,21 +854,30 @@ function PageSection({
       )}
       {selected && (
         <>
-          <div
-            draggable
-            role='button'
-            tabIndex={0}
+          <button
+            type='button'
             aria-label='Drag section to reorder'
-            className='absolute left-0 top-1/2 flex h-11 w-7 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center rounded-full bg-purple-600 text-white shadow-sm ring-2 ring-background active:cursor-grabbing'
+            className='absolute left-0 top-1/2 flex h-11 w-7 -translate-x-1/2 -translate-y-1/2 touch-none cursor-grab items-center justify-center rounded-md bg-purple-600 text-white shadow-sm ring-2 ring-background active:cursor-grabbing'
             onClick={(event) => event.stopPropagation()}
-            onDragStart={(event) => {
+            onPointerDown={(event) => {
               event.stopPropagation()
-              onDragStart(event)
+              onDragHandlePointerDown(event)
             }}
-            onDragEnd={onDragEnd}
+            onPointerMove={(event) => {
+              event.stopPropagation()
+              onDragHandlePointerMove(event)
+            }}
+            onPointerUp={(event) => {
+              event.stopPropagation()
+              onDragHandlePointerEnd(event)
+            }}
+            onPointerCancel={(event) => {
+              event.stopPropagation()
+              onDragHandlePointerEnd(event)
+            }}
           >
             <GripVertical className='size-4' />
-          </div>
+          </button>
           <div
             className='absolute right-3 top-3 flex items-center gap-1 rounded-md border border-purple-300 bg-background/95 p-1 shadow-sm'
             onClick={(event) => event.stopPropagation()}

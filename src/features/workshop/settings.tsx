@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Search } from '@/components/search'
-import { ThemeSwitch } from '@/components/theme-switch'
 import { AppearanceForm } from '@/features/settings/appearance/appearance-form'
 
 export function SettingsPage() {
@@ -17,7 +16,6 @@ export function SettingsPage() {
     <>
       <Header>
         <Search className='me-auto' />
-        <ThemeSwitch />
       </Header>
 
       <Main fixed>

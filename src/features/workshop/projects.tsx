@@ -3,14 +3,12 @@ import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { Search } from '@/components/search'
-import { ThemeSwitch } from '@/components/theme-switch'
 
 export function ProjectsPage() {
   return (
     <>
       <Header>
         <Search className='me-auto' />
-        <ThemeSwitch />
       </Header>
 
       <Main>

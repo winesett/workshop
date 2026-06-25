@@ -10,9 +10,11 @@ import {
 import {
   ArrowDown,
   ArrowUp,
+  Eye,
   FilePlus,
   GripVertical,
   ImageOff,
+  Maximize2,
   MoreHorizontal,
   Plus,
   Trash2,
@@ -944,6 +946,7 @@ function PageControls({
         size='sm'
         onClick={onTogglePageViewMode}
       >
+        {pageViewMode === 'birdseye' ? <Maximize2 /> : <Eye />}
         {pageViewMode === 'birdseye' ? 'Normal' : 'Birdseye'}
       </Button>
       <DropdownMenu>

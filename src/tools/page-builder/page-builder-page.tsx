@@ -861,7 +861,7 @@ function AssetLibraryItem({
   onSecondaryAction?: () => void
 }) {
   return (
-    <div className='group rounded-md border bg-card text-card-foreground'>
+    <div className='group rounded-md border bg-card text-card-foreground transition-colors hover:border-primary/35 hover:bg-accent/30 hover:shadow-sm'>
       <div className='overflow-hidden rounded-t-md bg-muted'>
         <img
           src={asset.imagePath}

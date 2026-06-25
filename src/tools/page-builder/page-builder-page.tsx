@@ -608,7 +608,7 @@ function buildPageBuilderPrompt(
   const lines = [
     'Build this page in Figma using the Relume Figma Kit (v3.7) Community library.',
     '',
-    'Use desktop components. Create one frame per page. Assemble sections in the exact order listed. Match each section by category and layout name. If an exact component is unavailable, use the closest component from the same category and note the substitution.',
+    'Use desktop components. Create one frame per page. Assemble sections in the exact order listed. Match each section by category and layout name. If an exact component is unavailable, put in a missing element placeholder for that section.',
   ]
 
   for (const page of document.pages) {

@@ -1,7 +1,4 @@
-import {
-  type PageBuilderDocument,
-  type PageBuilderPageModel,
-} from '../types'
+import { type PageBuilderDocument, type PageBuilderPageModel } from '../types'
 
 const PAGE_BUILDER_STORAGE_KEY = 'workshop:page-builder:v1'
 
@@ -40,9 +37,17 @@ function isDocument(value: unknown): value is PageBuilderDocument {
       pageValue.sections.every((section) => {
         if (!section || typeof section !== 'object') return false
         const sectionValue = section as Record<string, unknown>
+        const unresolved = sectionValue.unresolved
+        const hasValidUnresolved =
+          unresolved === undefined ||
+          (typeof unresolved === 'object' &&
+            unresolved !== null &&
+            typeof (unresolved as Record<string, unknown>).source === 'string')
+
         return (
           typeof sectionValue.id === 'string' &&
-          typeof sectionValue.assetId === 'string'
+          typeof sectionValue.assetId === 'string' &&
+          hasValidUnresolved
         )
       })
     )

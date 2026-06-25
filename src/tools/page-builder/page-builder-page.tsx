@@ -16,7 +16,6 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -34,6 +33,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
   Select,
   SelectContent,
@@ -41,6 +41,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Main } from '@/components/layout/main'
 import {
   createBlankPage,
@@ -54,10 +56,10 @@ import {
 } from './types'
 
 const CATALOG_PATH = '/local-assets/page-builder/catalog.json'
-const SOURCE_LIBRARY_PATH =
-  'src/tools/page-builder/assets/relume-thumbnails'
+const SOURCE_LIBRARY_PATH = 'src/tools/page-builder/assets/relume-thumbnails'
 const SYNC_COMMAND = 'pnpm sync:page-builder-library'
 const SECTION_MENU_VALUE = '__section_menu__'
+const ASSEMBLY_SCHEMA = 'workshop.pageBuilder.assembly.v1'
 const naturalSort = new Intl.Collator(undefined, {
   numeric: true,
   sensitivity: 'base',
@@ -74,6 +76,33 @@ type SectionDragState = {
   currentY: number
 }
 
+type ImportMode = 'replace' | 'append'
+
+type ImportSectionRequest = {
+  assetId?: string
+  category?: string
+  name?: string
+  source: string
+}
+
+type ImportSectionPreview = {
+  request: ImportSectionRequest
+  asset?: PageBuilderAsset
+}
+
+type ImportPagePreview = {
+  name: string
+  sections: ImportSectionPreview[]
+}
+
+type ImportPreview = {
+  errors: string[]
+  pages: ImportPagePreview[]
+  totalSections: number
+  resolvedSections: number
+  unresolvedSections: ImportSectionPreview[]
+}
+
 export function PageBuilderPage() {
   const [catalogState, setCatalogState] = useState<CatalogState>({
     status: 'loading',
@@ -84,6 +113,7 @@ export function PageBuilderPage() {
   )
   const [search, setSearch] = useState('')
   const [addPageOpen, setAddPageOpen] = useState(false)
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [renamePageTarget, setRenamePageTarget] =
     useState<PageBuilderPageModel | null>(null)
   const [deletePageTarget, setDeletePageTarget] =
@@ -157,9 +187,7 @@ export function PageBuilderPage() {
 
   const assetMap = useMemo(
     () =>
-      new Map(
-        catalogState.assets.map((asset) => [asset.id, asset] as const)
-      ),
+      new Map(catalogState.assets.map((asset) => [asset.id, asset] as const)),
     [catalogState.assets]
   )
 
@@ -203,10 +231,7 @@ export function PageBuilderPage() {
         page.id === current.activePageId
           ? {
               ...page,
-              sections: [
-                ...page.sections,
-                { id: sectionId, assetId },
-              ],
+              sections: [...page.sections, { id: sectionId, assetId }],
             }
           : page
       ),
@@ -385,6 +410,35 @@ export function PageBuilderPage() {
     })
   }
 
+  function importPages(previewPages: ImportPagePreview[], mode: ImportMode) {
+    const importedPages = createImportedPages(previewPages)
+    if (importedPages.length === 0) return
+
+    setSelectedSectionId(null)
+
+    if (mode === 'replace') {
+      setDocument({
+        activePageId: importedPages[0].id,
+        pages: importedPages,
+      })
+      return
+    }
+
+    updateDocument((current) => {
+      const existingNames = new Set(current.pages.map((page) => page.name))
+      const uniqueImportedPages = importedPages.map((page) => {
+        const uniqueName = getUniquePageName(page.name, existingNames)
+        existingNames.add(uniqueName)
+        return { ...page, name: uniqueName }
+      })
+
+      return {
+        activePageId: uniqueImportedPages[0].id,
+        pages: [...current.pages, ...uniqueImportedPages],
+      }
+    })
+  }
+
   return (
     <Main fixed fluid className='p-0'>
       <div className='flex min-h-0 flex-1 bg-muted/30'>
@@ -428,9 +482,7 @@ export function PageBuilderPage() {
               <Select
                 value={visibleCategory ?? SECTION_MENU_VALUE}
                 onValueChange={(value) =>
-                  setSelectedCategory(
-                    value === SECTION_MENU_VALUE ? '' : value
-                  )
+                  setSelectedCategory(value === SECTION_MENU_VALUE ? '' : value)
                 }
               >
                 <SelectTrigger className='w-full'>
@@ -452,7 +504,9 @@ export function PageBuilderPage() {
 
           <div className='min-h-0 flex-1 overflow-y-auto p-4'>
             {catalogState.status === 'loading' && (
-              <p className='text-sm text-muted-foreground'>Loading catalog...</p>
+              <p className='text-sm text-muted-foreground'>
+                Loading catalog...
+              </p>
             )}
 
             {catalogState.status === 'missing' && <MissingCatalogState />}
@@ -507,15 +561,14 @@ export function PageBuilderPage() {
             activePage={activePage}
             assetMap={assetMap}
             onAddPage={() => setAddPageOpen(true)}
-            onSelectPage={(pageId) =>
-              {
-                setSelectedSectionId(null)
-                updateDocument((current) => ({
-                  ...current,
-                  activePageId: pageId,
-                }))
-              }
-            }
+            onImportJson={() => setImportDialogOpen(true)}
+            onSelectPage={(pageId) => {
+              setSelectedSectionId(null)
+              updateDocument((current) => ({
+                ...current,
+                activePageId: pageId,
+              }))
+            }}
             onRenamePage={(page) => setRenamePageTarget(page)}
             onDeletePage={(page) => setDeletePageTarget(page)}
           />
@@ -528,7 +581,9 @@ export function PageBuilderPage() {
               {activePage.sections.length === 0 ? (
                 <div className='flex min-h-[520px] flex-col items-center justify-center px-6 py-16 text-center'>
                   <FilePlus className='mb-4 size-10 text-muted-foreground' />
-                  <h2 className='text-lg font-semibold'>Start with a section</h2>
+                  <h2 className='text-lg font-semibold'>
+                    Start with a section
+                  </h2>
                   <p className='mt-2 max-w-md text-sm text-muted-foreground'>
                     Add screenshots from the library to assemble this page.
                   </p>
@@ -540,8 +595,12 @@ export function PageBuilderPage() {
                     sectionId={section.id}
                     asset={assetMap.get(section.assetId)}
                     sectionName={
-                      assetMap.get(section.assetId)?.name ?? 'Missing section'
+                      assetMap.get(section.assetId)?.name ??
+                      section.unresolved?.name ??
+                      section.unresolved?.source ??
+                      'Missing section'
                     }
+                    unresolvedLabel={section.unresolved?.source}
                     selected={section.id === selectedSection?.id}
                     dragging={sectionDrag?.sectionId === section.id}
                     dragOffsetY={
@@ -592,6 +651,13 @@ export function PageBuilderPage() {
         submitLabel='Add page'
         initialName='Untitled page'
         onSubmit={addPage}
+      />
+
+      <ImportJsonDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        assets={catalogState.status === 'ready' ? catalogState.assets : []}
+        onImport={importPages}
       />
 
       <PageNameDialog
@@ -724,6 +790,7 @@ function PageControls({
   activePage,
   assetMap,
   onAddPage,
+  onImportJson,
   onSelectPage,
   onRenamePage,
   onDeletePage,
@@ -732,6 +799,7 @@ function PageControls({
   activePage: PageBuilderPageModel
   assetMap: Map<string, PageBuilderAsset>
   onAddPage: () => void
+  onImportJson: () => void
   onSelectPage: (pageId: string) => void
   onRenamePage: (page: PageBuilderPageModel) => void
   onDeletePage: (page: PageBuilderPageModel) => void
@@ -758,12 +826,20 @@ function PageControls({
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button type='button' variant='outline' size='icon' className='size-8'>
+          <Button
+            type='button'
+            variant='outline'
+            size='icon'
+            className='size-8'
+          >
             <MoreHorizontal />
             <span className='sr-only'>Page actions</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
+          <DropdownMenuItem onSelect={onImportJson}>
+            Import from JSON
+          </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => copyPageBuilderPrompt(activePage, assetMap)}
           >
@@ -786,6 +862,177 @@ function PageControls({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+    </div>
+  )
+}
+
+function ImportJsonDialog({
+  open,
+  onOpenChange,
+  assets,
+  onImport,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  assets: PageBuilderAsset[]
+  onImport: (pages: ImportPagePreview[], mode: ImportMode) => void
+}) {
+  const [jsonInput, setJsonInput] = useState('')
+  const [mode, setMode] = useState<ImportMode>('replace')
+  const preview = useMemo(
+    () => parseAssemblyImport(jsonInput, assets),
+    [assets, jsonInput]
+  )
+  const canImport = preview.errors.length === 0 && preview.pages.length > 0
+
+  function handleOpenChange(nextOpen: boolean) {
+    onOpenChange(nextOpen)
+    if (!nextOpen) {
+      setJsonInput('')
+      setMode('replace')
+    }
+  }
+
+  function handleImport() {
+    if (!canImport) return
+
+    onImport(preview.pages, mode)
+    handleOpenChange(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-2xl'>
+        <DialogHeader>
+          <DialogTitle>Import from JSON</DialogTitle>
+          <DialogDescription>
+            Paste a Page Builder assembly JSON document to create pages from the
+            current screenshot catalog.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className='space-y-5'>
+          <div className='space-y-2'>
+            <Label htmlFor='page-builder-import-json'>Assembly JSON</Label>
+            <Textarea
+              id='page-builder-import-json'
+              value={jsonInput}
+              onChange={(event) => setJsonInput(event.target.value)}
+              placeholder={`{\n  "schema": "${ASSEMBLY_SCHEMA}",\n  "pages": []\n}`}
+              className='min-h-56 font-mono text-xs'
+              aria-invalid={preview.errors.length > 0 ? true : undefined}
+            />
+          </div>
+
+          <div className='space-y-3'>
+            <Label>Import mode</Label>
+            <RadioGroup
+              value={mode}
+              onValueChange={(value) => setMode(value as ImportMode)}
+              className='gap-2'
+            >
+              <div className='flex items-center gap-2'>
+                <RadioGroupItem id='import-replace' value='replace' />
+                <Label htmlFor='import-replace' className='font-normal'>
+                  Replace current document
+                </Label>
+              </div>
+              <div className='flex items-center gap-2'>
+                <RadioGroupItem id='import-append' value='append' />
+                <Label htmlFor='import-append' className='font-normal'>
+                  Add as new pages
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <ImportPreviewPanel preview={preview} />
+        </div>
+
+        <DialogFooter>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={() => handleOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button type='button' disabled={!canImport} onClick={handleImport}>
+            Import
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function ImportPreviewPanel({ preview }: { preview: ImportPreview }) {
+  if (preview.errors.length > 0) {
+    return (
+      <div className='space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-3'>
+        <h3 className='text-sm font-medium text-destructive'>
+          Import needs attention
+        </h3>
+        <ul className='space-y-1 text-sm text-destructive'>
+          {preview.errors.map((error) => (
+            <li key={error}>{error}</li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+
+  if (preview.pages.length === 0) {
+    return (
+      <div className='rounded-md border bg-muted/20 p-3 text-sm text-muted-foreground'>
+        Paste assembly JSON to preview the import.
+      </div>
+    )
+  }
+
+  return (
+    <div className='space-y-3 rounded-md border bg-muted/20 p-3'>
+      <div className='grid gap-2 text-sm sm:grid-cols-4'>
+        <PreviewMetric label='Pages' value={preview.pages.length} />
+        <PreviewMetric label='Sections' value={preview.totalSections} />
+        <PreviewMetric label='Resolved' value={preview.resolvedSections} />
+        <PreviewMetric
+          label='Unresolved'
+          value={preview.unresolvedSections.length}
+        />
+      </div>
+
+      <div className='space-y-1'>
+        <h3 className='text-sm font-medium'>Pages</h3>
+        <p className='text-sm text-muted-foreground'>
+          {preview.pages.map((page) => page.name).join(', ')}
+        </p>
+      </div>
+
+      {preview.unresolvedSections.length > 0 && (
+        <div className='space-y-1'>
+          <h3 className='text-sm font-medium'>Unresolved sections</h3>
+          <ul className='space-y-1 text-sm text-muted-foreground'>
+            {preview.unresolvedSections.map((section, index) => (
+              <li key={`${section.request.source}-${index}`}>
+                {section.request.source}
+              </li>
+            ))}
+          </ul>
+          <p className='text-xs text-muted-foreground'>
+            These will import as missing placeholders.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PreviewMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className='rounded-md border bg-background p-2'>
+      <p className='text-xs text-muted-foreground'>{label}</p>
+      <p className='text-base font-semibold'>{value}</p>
     </div>
   )
 }
@@ -822,8 +1069,13 @@ function buildPageBuilderPrompt(
 
   for (const [index, section] of page.sections.entries()) {
     const asset = assetMap.get(section.assetId)
-    const category = asset?.category ?? 'Missing asset'
-    const name = asset?.name ?? section.assetId
+    const category =
+      asset?.category ?? section.unresolved?.category ?? 'Missing asset'
+    const name =
+      asset?.name ??
+      section.unresolved?.name ??
+      section.unresolved?.source ??
+      section.assetId
 
     lines.push(`${index + 1}. ${category} / ${name}`)
   }
@@ -836,24 +1088,28 @@ function exportPageJson(
   assetMap: Map<string, PageBuilderAsset>
 ) {
   const payload = {
-    [page.name]: page.sections.map((section, index) => {
-      const asset = assetMap.get(section.assetId)
+    schema: ASSEMBLY_SCHEMA,
+    pages: [
+      {
+        name: page.name,
+        sections: page.sections.map((section) => {
+          const asset = assetMap.get(section.assetId)
 
-      return {
-        order: index + 1,
-        sectionInstanceId: section.id,
-        assetId: section.assetId,
-        layout: asset
-          ? {
-              name: asset.name,
-              category: asset.category,
-              filename: asset.filename,
-              imagePath: asset.imagePath,
-            }
-          : null,
-        missing: !asset,
-      }
-    }),
+          return asset
+            ? {
+                category: asset.category,
+                name: asset.name,
+                assetId: asset.id,
+              }
+            : {
+                category: section.unresolved?.category,
+                name: section.unresolved?.name ?? section.unresolved?.source,
+                assetId: section.unresolved?.assetId,
+                unresolved: true,
+              }
+        }),
+      },
+    ],
   }
   const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], {
     type: 'application/json',
@@ -865,6 +1121,268 @@ function exportPageJson(
   link.download = `${slugify(page.name || 'page')}-layouts.json`
   link.click()
   URL.revokeObjectURL(url)
+}
+
+function parseAssemblyImport(
+  input: string,
+  assets: PageBuilderAsset[]
+): ImportPreview {
+  const trimmedInput = input.trim()
+  if (!trimmedInput) {
+    return createEmptyImportPreview()
+  }
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(trimmedInput)
+  } catch {
+    return {
+      ...createEmptyImportPreview(),
+      errors: ['JSON is malformed. Check the pasted text and try again.'],
+    }
+  }
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return {
+      ...createEmptyImportPreview(),
+      errors: ['JSON must be an object with schema and pages fields.'],
+    }
+  }
+
+  const root = parsed as Record<string, unknown>
+  const errors: string[] = []
+
+  if (root.schema !== ASSEMBLY_SCHEMA) {
+    errors.push(`Schema must be "${ASSEMBLY_SCHEMA}".`)
+  }
+
+  if (!Array.isArray(root.pages)) {
+    errors.push('Pages must be an array.')
+    return { ...createEmptyImportPreview(), errors }
+  }
+
+  if (root.pages.length === 0) {
+    errors.push('Pages array must contain at least one page.')
+  }
+
+  const pages: ImportPagePreview[] = []
+  const unresolvedSections: ImportSectionPreview[] = []
+  let totalSections = 0
+  let resolvedSections = 0
+
+  root.pages.forEach((pageValue, pageIndex) => {
+    if (
+      !pageValue ||
+      typeof pageValue !== 'object' ||
+      Array.isArray(pageValue)
+    ) {
+      errors.push(`Page ${pageIndex + 1} must be an object.`)
+      return
+    }
+
+    const page = pageValue as Record<string, unknown>
+    const pageName = typeof page.name === 'string' ? page.name.trim() : ''
+
+    if (!pageName) {
+      errors.push(`Page ${pageIndex + 1} is missing a name.`)
+    }
+
+    if (!Array.isArray(page.sections)) {
+      errors.push(
+        `Page "${pageName || pageIndex + 1}" sections must be an array.`
+      )
+      return
+    }
+
+    const sections: ImportSectionPreview[] = []
+
+    page.sections.forEach((sectionValue, sectionIndex) => {
+      const request = parseImportSectionRequest(sectionValue)
+
+      if (!request) {
+        errors.push(
+          `Page "${pageName || pageIndex + 1}" section ${sectionIndex + 1} is invalid.`
+        )
+        return
+      }
+
+      const asset = resolveImportSection(request, assets)
+      const sectionPreview = { request, asset }
+      sections.push(sectionPreview)
+      totalSections += 1
+
+      if (asset) {
+        resolvedSections += 1
+      } else {
+        unresolvedSections.push(sectionPreview)
+      }
+    })
+
+    if (pageName) {
+      pages.push({ name: pageName, sections })
+    }
+  })
+
+  return {
+    errors,
+    pages: errors.length > 0 ? [] : pages,
+    totalSections: errors.length > 0 ? 0 : totalSections,
+    resolvedSections: errors.length > 0 ? 0 : resolvedSections,
+    unresolvedSections: errors.length > 0 ? [] : unresolvedSections,
+  }
+}
+
+function createEmptyImportPreview(): ImportPreview {
+  return {
+    errors: [],
+    pages: [],
+    totalSections: 0,
+    resolvedSections: 0,
+    unresolvedSections: [],
+  }
+}
+
+function parseImportSectionRequest(
+  value: unknown
+): ImportSectionRequest | null {
+  if (typeof value === 'string') {
+    const [category, name] = value.split('/').map((part) => part.trim())
+    if (!category || !name) return null
+
+    return {
+      category,
+      name,
+      source: value,
+    }
+  }
+
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null
+  }
+
+  const section = value as Record<string, unknown>
+  const assetId =
+    typeof section.assetId === 'string' ? section.assetId.trim() : undefined
+  const category =
+    typeof section.category === 'string' ? section.category.trim() : undefined
+  const name =
+    typeof section.name === 'string' ? section.name.trim() : undefined
+
+  if (assetId) {
+    return {
+      assetId,
+      category,
+      name,
+      source: assetId,
+    }
+  }
+
+  if (category && name) {
+    return {
+      category,
+      name,
+      source: `${category} / ${name}`,
+    }
+  }
+
+  return null
+}
+
+function resolveImportSection(
+  request: ImportSectionRequest,
+  assets: PageBuilderAsset[]
+) {
+  if (request.assetId) {
+    const assetById = assets.find((asset) => asset.id === request.assetId)
+    if (assetById) return assetById
+  }
+
+  const normalizedCategory = request.category
+    ? normalizeImportValue(request.category)
+    : ''
+  const normalizedName = request.name ? normalizeImportValue(request.name) : ''
+
+  if (normalizedCategory && normalizedName) {
+    const assetByCategoryAndName = assets.find(
+      (asset) =>
+        normalizeImportValue(asset.category) === normalizedCategory &&
+        normalizeImportValue(asset.name) === normalizedName
+    )
+    if (assetByCategoryAndName) return assetByCategoryAndName
+
+    const assetByCategoryAndFilename = assets.find(
+      (asset) =>
+        normalizeImportValue(asset.category) === normalizedCategory &&
+        normalizeImportValue(stripFileExtension(asset.filename)) ===
+          normalizedName
+    )
+    if (assetByCategoryAndFilename) return assetByCategoryAndFilename
+  }
+
+  if (normalizedName) {
+    const uniqueNameMatches = assets.filter(
+      (asset) => normalizeImportValue(asset.name) === normalizedName
+    )
+    if (uniqueNameMatches.length === 1) return uniqueNameMatches[0]
+  }
+
+  return undefined
+}
+
+function createImportedPages(previewPages: ImportPagePreview[]) {
+  return previewPages.map((page) => ({
+    id: crypto.randomUUID(),
+    name: page.name,
+    sections: page.sections.map((section) => ({
+      id: crypto.randomUUID(),
+      assetId: section.asset?.id ?? createUnresolvedAssetId(section.request),
+      unresolved: section.asset
+        ? undefined
+        : {
+            assetId: section.request.assetId,
+            category: section.request.category,
+            name: section.request.name,
+            source: section.request.source,
+          },
+    })),
+  }))
+}
+
+function createUnresolvedAssetId(request: ImportSectionRequest) {
+  const identifier =
+    request.assetId ??
+    [request.category, request.name].filter(Boolean).join(' ')
+  const normalizedIdentifier = normalizeImportValue(
+    identifier || request.source
+  )
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9:-]/g, '')
+
+  return `unresolved:${normalizedIdentifier || 'section'}`
+}
+
+function getUniquePageName(name: string, existingNames: Set<string>) {
+  if (!existingNames.has(name)) return name
+
+  let index = 2
+  let nextName = `${name} (${index})`
+  while (existingNames.has(nextName)) {
+    index += 1
+    nextName = `${name} (${index})`
+  }
+
+  return nextName
+}
+
+function normalizeImportValue(value: string) {
+  return stripFileExtension(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, ' ')
+}
+
+function stripFileExtension(value: string) {
+  return value.replace(/\.[a-z0-9]+$/i, '')
 }
 
 function downloadTextFile(filename: string, text: string) {
@@ -884,6 +1402,7 @@ function PageSection({
   sectionId,
   asset,
   sectionName,
+  unresolvedLabel,
   selected,
   dragging,
   dragOffsetY,
@@ -900,6 +1419,7 @@ function PageSection({
   sectionId: string
   asset?: PageBuilderAsset
   sectionName: string
+  unresolvedLabel?: string
   selected: boolean
   dragging: boolean
   dragOffsetY: number
@@ -940,7 +1460,9 @@ function PageSection({
           <ImageOff className='mb-3 size-8 text-muted-foreground' />
           <h3 className='text-sm font-medium'>Missing screenshot asset</h3>
           <p className='mt-1 max-w-sm text-sm text-muted-foreground'>
-            This saved section references an asset that is no longer available.
+            {unresolvedLabel
+              ? `Unresolved import request: ${unresolvedLabel}`
+              : 'This saved section references an asset that is no longer available.'}
           </p>
         </div>
       )}
@@ -949,7 +1471,7 @@ function PageSection({
           <button
             type='button'
             aria-label='Drag section to reorder'
-            className='absolute left-0 top-1/2 flex h-11 w-7 -translate-x-1/2 -translate-y-1/2 touch-none cursor-grab items-center justify-center rounded-md bg-purple-600 text-white shadow-sm ring-2 ring-background active:cursor-grabbing'
+            className='absolute top-1/2 left-0 flex h-11 w-7 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-md bg-purple-600 text-white shadow-sm ring-2 ring-background active:cursor-grabbing'
             onClick={(event) => event.stopPropagation()}
             onPointerDown={(event) => {
               event.stopPropagation()
@@ -971,7 +1493,7 @@ function PageSection({
             <GripVertical className='size-4' />
           </button>
           <div
-            className='absolute right-3 top-3 flex items-center gap-1 rounded-md border border-purple-300 bg-background/95 p-1 shadow-sm'
+            className='absolute top-3 right-3 flex items-center gap-1 rounded-md border border-purple-300 bg-background/95 p-1 shadow-sm'
             onClick={(event) => event.stopPropagation()}
           >
             <span className='px-2 text-xs font-medium text-purple-700 dark:text-purple-300'>

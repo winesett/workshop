@@ -9,6 +9,12 @@ export type PageBuilderAsset = {
 export type PageBuilderSectionInstance = {
   id: string
   assetId: string
+  unresolved?: {
+    category?: string
+    name?: string
+    assetId?: string
+    source: string
+  }
 }
 
 export type PageBuilderPageModel = {

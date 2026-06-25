@@ -27,6 +27,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Main } from '@/components/layout/main'
 import {
   createBlankPage,
@@ -67,6 +74,7 @@ export function PageBuilderPage() {
     useState<PageBuilderPageModel | null>(null)
   const [deletePageTarget, setDeletePageTarget] =
     useState<PageBuilderPageModel | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
     null
   )
@@ -124,6 +132,18 @@ export function PageBuilderPage() {
   const categoryGroups = useMemo(
     () => groupAssets(catalogState.assets, search),
     [catalogState.assets, search]
+  )
+  const categoryOptions = useMemo(
+    () => getCategoryOptions(catalogState.assets),
+    [catalogState.assets]
+  )
+  const visibleCategory =
+    selectedCategory &&
+    categoryOptions.some((option) => option === selectedCategory)
+      ? selectedCategory
+      : categoryOptions[0]
+  const visibleCategoryGroup = categoryGroups.find(
+    (group) => group.category === visibleCategory
   )
 
   function updateDocument(
@@ -297,6 +317,23 @@ export function PageBuilderPage() {
               onChange={(event) => setSearch(event.target.value)}
               placeholder='Search sections'
             />
+            {catalogState.status === 'ready' && categoryOptions.length > 0 && (
+              <Select
+                value={visibleCategory}
+                onValueChange={setSelectedCategory}
+              >
+                <SelectTrigger className='w-full'>
+                  <SelectValue placeholder='Choose a section category' />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryOptions.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {readableCategory(category)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className='min-h-0 flex-1 overflow-y-auto p-4'>
@@ -307,31 +344,27 @@ export function PageBuilderPage() {
             {catalogState.status === 'missing' && <MissingCatalogState />}
 
             {catalogState.status === 'ready' &&
-              (categoryGroups.length > 0 ? (
-                <div className='space-y-6'>
-                  {categoryGroups.map((group) => (
-                    <section key={group.category} className='space-y-3'>
-                      <div className='flex items-center justify-between gap-3'>
-                        <h2 className='text-sm font-medium'>
-                          {readableCategory(group.category)}
-                        </h2>
-                        <span className='text-xs text-muted-foreground'>
-                          {group.assets.length}
-                        </span>
-                      </div>
-                      <div className='space-y-3'>
-                        {group.assets.map((asset) => (
-                          <AssetLibraryItem
-                            key={asset.id}
-                            asset={asset}
-                            actionLabel={selectedSection ? 'Replace' : 'Add'}
-                            onAction={() => handleAssetAction(asset.id)}
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  ))}
-                </div>
+              (visibleCategoryGroup ? (
+                <section className='space-y-3'>
+                  <div className='flex items-center justify-between gap-3'>
+                    <h2 className='text-sm font-medium'>
+                      {readableCategory(visibleCategoryGroup.category)}
+                    </h2>
+                    <span className='text-xs text-muted-foreground'>
+                      {visibleCategoryGroup.assets.length}
+                    </span>
+                  </div>
+                  <div className='space-y-3'>
+                    {visibleCategoryGroup.assets.map((asset) => (
+                      <AssetLibraryItem
+                        key={asset.id}
+                        asset={asset}
+                        actionLabel={selectedSection ? 'Replace' : 'Add'}
+                        onAction={() => handleAssetAction(asset.id)}
+                      />
+                    ))}
+                  </div>
+                </section>
               ) : (
                 <p className='text-sm text-muted-foreground'>
                   No screenshots match that search.
@@ -773,6 +806,12 @@ function groupAssets(assets: PageBuilderAsset[], search: string) {
       category,
       assets: groupAssets.sort((a, b) => naturalSort.compare(a.name, b.name)),
     }))
+}
+
+function getCategoryOptions(assets: PageBuilderAsset[]) {
+  return [...new Set(assets.map((asset) => asset.category))].sort((a, b) =>
+    naturalSort.compare(a, b)
+  )
 }
 
 function normalizeDocument(document: PageBuilderDocument): PageBuilderDocument {

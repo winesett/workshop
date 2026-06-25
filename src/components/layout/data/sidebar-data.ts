@@ -1,4 +1,5 @@
 import { FolderKanban, PenTool, Settings } from 'lucide-react'
+import { tools } from '@/tools/tool-registry'
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
@@ -22,6 +23,14 @@ export const sidebarData: SidebarData = {
           icon: Settings,
         },
       ],
+    },
+    {
+      title: 'Tools',
+      items: tools.map((tool) => ({
+        title: tool.name,
+        url: tool.route,
+        icon: tool.icon,
+      })),
     },
   ],
 }

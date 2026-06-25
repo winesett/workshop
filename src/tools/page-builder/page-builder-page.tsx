@@ -870,14 +870,14 @@ function AssetLibraryItem({
           className='h-auto w-full transition-opacity group-hover:opacity-90'
         />
       </button>
-      <div className='flex items-center gap-2 p-2'>
-        <div className='min-w-0 flex-1'>
+      <div className='space-y-2 p-2'>
+        <div className='min-w-0'>
           <p className='truncate text-sm font-medium'>{asset.name}</p>
           <p className='truncate text-xs text-muted-foreground'>
             {readableCategory(asset.category)}
           </p>
         </div>
-        <div className='flex shrink-0 items-center gap-1.5'>
+        <div className='flex items-center justify-end gap-1.5'>
           {secondaryActionLabel && onSecondaryAction && (
             <Button
               type='button'

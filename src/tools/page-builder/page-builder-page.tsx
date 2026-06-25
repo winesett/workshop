@@ -1,4 +1,10 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react'
+import {
+  type DragEvent,
+  type FormEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import {
   ArrowDown,
   ArrowUp,
@@ -78,6 +84,7 @@ export function PageBuilderPage() {
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
     null
   )
+  const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null)
 
   useEffect(() => {
     let canceled = false
@@ -215,6 +222,41 @@ export function PageBuilderPage() {
         const nextSections = [...page.sections]
         const [section] = nextSections.splice(index, 1)
         nextSections.splice(nextIndex, 0, section)
+
+        return { ...page, sections: nextSections }
+      }),
+    }))
+  }
+
+  function moveSectionToTarget(
+    sectionId: string,
+    targetSectionId: string,
+    placement: 'before' | 'after'
+  ) {
+    if (sectionId === targetSectionId) return
+
+    updateDocument((current) => ({
+      ...current,
+      pages: current.pages.map((page) => {
+        if (page.id !== current.activePageId) return page
+
+        const sourceIndex = page.sections.findIndex(
+          (section) => section.id === sectionId
+        )
+        const targetIndex = page.sections.findIndex(
+          (section) => section.id === targetSectionId
+        )
+
+        if (sourceIndex < 0 || targetIndex < 0) return page
+
+        const nextSections = [...page.sections]
+        const [section] = nextSections.splice(sourceIndex, 1)
+        const adjustedTargetIndex =
+          sourceIndex < targetIndex ? targetIndex - 1 : targetIndex
+        const insertionIndex =
+          placement === 'before' ? adjustedTargetIndex : adjustedTargetIndex + 1
+
+        nextSections.splice(insertionIndex, 0, section)
 
         return { ...page, sections: nextSections }
       }),
@@ -416,6 +458,33 @@ export function PageBuilderPage() {
                     isLast={index === activePage.sections.length - 1}
                     onSelect={() => setSelectedSectionId(section.id)}
                     onDeselect={() => setSelectedSectionId(null)}
+                    onDragStart={(event) => {
+                      event.dataTransfer.effectAllowed = 'move'
+                      event.dataTransfer.setData('text/plain', section.id)
+                      setDraggedSectionId(section.id)
+                      setSelectedSectionId(section.id)
+                    }}
+                    onDragEnd={() => setDraggedSectionId(null)}
+                    onDrop={(event) => {
+                      const sourceSectionId =
+                        event.dataTransfer.getData('text/plain') ||
+                        draggedSectionId
+                      const rect = event.currentTarget.getBoundingClientRect()
+                      const placement =
+                        event.clientY < rect.top + rect.height / 2
+                          ? 'before'
+                          : 'after'
+
+                      if (sourceSectionId) {
+                        moveSectionToTarget(
+                          sourceSectionId,
+                          section.id,
+                          placement
+                        )
+                      }
+
+                      setDraggedSectionId(null)
+                    }}
                     onMoveUp={() => moveSection(section.id, -1)}
                     onMoveDown={() => moveSection(section.id, 1)}
                     onRemove={() => removeSection(section.id)}
@@ -688,6 +757,9 @@ function PageSection({
   isLast,
   onSelect,
   onDeselect,
+  onDragStart,
+  onDragEnd,
+  onDrop,
   onMoveUp,
   onMoveDown,
   onRemove,
@@ -699,6 +771,9 @@ function PageSection({
   isLast: boolean
   onSelect: () => void
   onDeselect: () => void
+  onDragStart: (event: DragEvent<HTMLDivElement>) => void
+  onDragEnd: () => void
+  onDrop: (event: DragEvent<HTMLDivElement>) => void
   onMoveUp: () => void
   onMoveDown: () => void
   onRemove: () => void
@@ -713,6 +788,15 @@ function PageSection({
       onClick={(event) => {
         event.stopPropagation()
         onSelect()
+      }}
+      onDragOver={(event) => {
+        event.preventDefault()
+        event.dataTransfer.dropEffect = 'move'
+      }}
+      onDrop={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        onDrop(event)
       }}
     >
       {asset ? (
@@ -732,7 +816,19 @@ function PageSection({
       )}
       {selected && (
         <>
-          <div className='absolute left-0 top-1/2 h-10 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600 shadow-sm' />
+          <div
+            draggable
+            role='button'
+            tabIndex={0}
+            aria-label='Drag section to reorder'
+            className='absolute left-0 top-1/2 h-10 w-2 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full bg-purple-600 shadow-sm active:cursor-grabbing'
+            onClick={(event) => event.stopPropagation()}
+            onDragStart={(event) => {
+              event.stopPropagation()
+              onDragStart(event)
+            }}
+            onDragEnd={onDragEnd}
+          />
           <div
             className='absolute right-3 top-3 flex items-center gap-1 rounded-md border border-purple-300 bg-background/95 p-1 shadow-sm'
             onClick={(event) => event.stopPropagation()}

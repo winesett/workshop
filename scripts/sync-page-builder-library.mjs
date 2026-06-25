@@ -10,6 +10,10 @@ const sourceRoot = path.join(
 )
 const outputRoot = path.join(repoRoot, 'public/local-assets/page-builder')
 const supportedExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp'])
+const collator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: 'base',
+})
 
 function readableName(filename) {
   return path.basename(filename, path.extname(filename)).trim()
@@ -95,7 +99,7 @@ async function syncLibrary() {
 
   records.sort(
     (a, b) =>
-      a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
+      collator.compare(a.category, b.category) || collator.compare(a.name, b.name)
   )
 
   await writeFile(

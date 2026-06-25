@@ -43,6 +43,10 @@ const CATALOG_PATH = '/local-assets/page-builder/catalog.json'
 const SOURCE_LIBRARY_PATH =
   'src/tools/page-builder/assets/relume-thumbnails'
 const SYNC_COMMAND = 'pnpm sync:page-builder-library'
+const naturalSort = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: 'base',
+})
 
 type CatalogState =
   | { status: 'loading'; assets: PageBuilderAsset[] }
@@ -764,10 +768,10 @@ function groupAssets(assets: PageBuilderAsset[], search: string) {
   }
 
   return [...groups.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
+    .sort(([a], [b]) => naturalSort.compare(a, b))
     .map(([category, groupAssets]) => ({
       category,
-      assets: groupAssets.sort((a, b) => a.name.localeCompare(b.name)),
+      assets: groupAssets.sort((a, b) => naturalSort.compare(a.name, b.name)),
     }))
 }
 

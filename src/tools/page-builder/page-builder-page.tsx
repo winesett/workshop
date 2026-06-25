@@ -3,6 +3,7 @@ import {
   type FormEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import {
@@ -778,8 +779,11 @@ function PageSection({
   onMoveDown: () => void
   onRemove: () => void
 }) {
+  const sectionRef = useRef<HTMLDivElement>(null)
+
   return (
     <div
+      ref={sectionRef}
       className={`group relative border-b last:border-b-0 ${
         selected
           ? 'z-10 ring-2 ring-purple-500'
@@ -825,6 +829,14 @@ function PageSection({
             onClick={(event) => event.stopPropagation()}
             onDragStart={(event) => {
               event.stopPropagation()
+              if (sectionRef.current) {
+                const rect = sectionRef.current.getBoundingClientRect()
+                event.dataTransfer.setDragImage(
+                  sectionRef.current,
+                  16,
+                  rect.height / 2
+                )
+              }
               onDragStart(event)
             }}
             onDragEnd={onDragEnd}

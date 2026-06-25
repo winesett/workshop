@@ -160,6 +160,12 @@ export function PageBuilderPage() {
   const visibleCategoryGroup = categoryGroups.find(
     (group) => group.category === visibleCategory
   )
+  const hasSearch = search.trim().length > 0
+  const visibleCategoryGroups = hasSearch
+    ? categoryGroups
+    : visibleCategoryGroup
+      ? [visibleCategoryGroup]
+      : []
 
   function updateDocument(
     updater: (current: PageBuilderDocument) => PageBuilderDocument
@@ -425,38 +431,44 @@ export function PageBuilderPage() {
             {catalogState.status === 'missing' && <MissingCatalogState />}
 
             {catalogState.status === 'ready' &&
-              (visibleCategoryGroup ? (
-                <section className='space-y-3'>
-                  <div className='flex items-center justify-between gap-3'>
-                    <h2 className='text-sm font-medium'>
-                      {readableCategory(visibleCategoryGroup.category)}
-                    </h2>
-                    <span className='text-xs text-muted-foreground'>
-                      {visibleCategoryGroup.assets.length}
-                    </span>
-                  </div>
-                  <div className='space-y-3'>
-                    {visibleCategoryGroup.assets.map((asset) => (
-                      <AssetLibraryItem
-                        key={asset.id}
-                        asset={asset}
-                        actionLabel={selectedSection ? 'Replace' : 'Add'}
-                        onAction={() => handleAssetAction(asset.id)}
-                        secondaryActionLabel={
-                          selectedSection ? 'Add below' : undefined
-                        }
-                        onSecondaryAction={
-                          selectedSection
-                            ? () => addSectionBelowSelected(asset.id)
-                            : undefined
-                        }
-                      />
-                    ))}
-                  </div>
-                </section>
+              (visibleCategoryGroups.length > 0 ? (
+                <div className='space-y-5'>
+                  {visibleCategoryGroups.map((group) => (
+                    <section key={group.category} className='space-y-3'>
+                      <div className='flex items-center justify-between gap-3'>
+                        <h2 className='text-sm font-medium'>
+                          {readableCategory(group.category)}
+                        </h2>
+                        <span className='text-xs text-muted-foreground'>
+                          {group.assets.length}
+                        </span>
+                      </div>
+                      <div className='space-y-3'>
+                        {group.assets.map((asset) => (
+                          <AssetLibraryItem
+                            key={asset.id}
+                            asset={asset}
+                            actionLabel={selectedSection ? 'Replace' : 'Add'}
+                            onAction={() => handleAssetAction(asset.id)}
+                            secondaryActionLabel={
+                              selectedSection ? 'Add below' : undefined
+                            }
+                            onSecondaryAction={
+                              selectedSection
+                                ? () => addSectionBelowSelected(asset.id)
+                                : undefined
+                            }
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
               ) : (
                 <p className='text-sm text-muted-foreground'>
-                  Choose a section category to browse screenshots.
+                  {hasSearch
+                    ? 'No screenshots match that search.'
+                    : 'Choose a section category to browse screenshots.'}
                 </p>
               ))}
           </div>

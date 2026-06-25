@@ -7,6 +7,7 @@ import {
   MoreHorizontal,
   Plus,
   Trash2,
+  X,
 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Button } from '@/components/ui/button'
@@ -62,6 +63,9 @@ export function PageBuilderPage() {
     useState<PageBuilderPageModel | null>(null)
   const [deletePageTarget, setDeletePageTarget] =
     useState<PageBuilderPageModel | null>(null)
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
+    null
+  )
 
   useEffect(() => {
     let canceled = false
@@ -101,6 +105,9 @@ export function PageBuilderPage() {
   const activePage =
     document.pages.find((page) => page.id === document.activePageId) ??
     document.pages[0]
+  const selectedSection =
+    activePage.sections.find((section) => section.id === selectedSectionId) ??
+    null
 
   const assetMap = useMemo(
     () =>
@@ -138,6 +145,35 @@ export function PageBuilderPage() {
     }))
   }
 
+  function replaceSection(assetId: string) {
+    if (!selectedSection) return
+
+    updateDocument((current) => ({
+      ...current,
+      pages: current.pages.map((page) =>
+        page.id === current.activePageId
+          ? {
+              ...page,
+              sections: page.sections.map((section) =>
+                section.id === selectedSection.id
+                  ? { ...section, assetId }
+                  : section
+              ),
+            }
+          : page
+      ),
+    }))
+  }
+
+  function handleAssetAction(assetId: string) {
+    if (selectedSection) {
+      replaceSection(assetId)
+      return
+    }
+
+    addSection(assetId)
+  }
+
   function moveSection(sectionId: string, direction: -1 | 1) {
     updateDocument((current) => ({
       ...current,
@@ -162,6 +198,10 @@ export function PageBuilderPage() {
   }
 
   function removeSection(sectionId: string) {
+    if (sectionId === selectedSectionId) {
+      setSelectedSectionId(null)
+    }
+
     updateDocument((current) => ({
       ...current,
       pages: current.pages.map((page) =>
@@ -179,6 +219,7 @@ export function PageBuilderPage() {
 
   function addPage(name: string) {
     const page = createBlankPage(name)
+    setSelectedSectionId(null)
     updateDocument((current) => ({
       activePageId: page.id,
       pages: [...current.pages, page],
@@ -195,6 +236,7 @@ export function PageBuilderPage() {
   }
 
   function deletePage(pageId: string) {
+    setSelectedSectionId(null)
     updateDocument((current) => {
       if (current.pages.length <= 1) return current
 
@@ -217,14 +259,35 @@ export function PageBuilderPage() {
       <div className='flex min-h-0 flex-1 bg-muted/30'>
         <aside className='flex w-80 shrink-0 flex-col border-r bg-background'>
           <div className='space-y-3 border-b p-4'>
-            <div>
-              <h1 className='text-lg font-semibold'>Add sections</h1>
-              <p className='text-sm text-muted-foreground'>
-                {catalogState.status === 'ready'
-                  ? `${catalogState.assets.length} screenshots`
-                  : 'Sync screenshots to load the library'}
-              </p>
+            <div className='flex items-start justify-between gap-3'>
+              <div>
+                <h1 className='text-lg font-semibold'>
+                  {selectedSection ? 'Replace section' : 'Add sections'}
+                </h1>
+                <p className='text-sm text-muted-foreground'>
+                  {catalogState.status === 'ready'
+                    ? `${catalogState.assets.length} screenshots`
+                    : 'Sync screenshots to load the library'}
+                </p>
+              </div>
+              {selectedSection && (
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  className='size-8'
+                  onClick={() => setSelectedSectionId(null)}
+                >
+                  <X />
+                  <span className='sr-only'>Close Replace mode</span>
+                </Button>
+              )}
             </div>
+            {selectedSection && (
+              <p className='text-sm text-muted-foreground'>
+                Choose another screenshot to swap into the selected section.
+              </p>
+            )}
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -257,7 +320,8 @@ export function PageBuilderPage() {
                           <AssetLibraryItem
                             key={asset.id}
                             asset={asset}
-                            onAdd={() => addSection(asset.id)}
+                            actionLabel={selectedSection ? 'Replace' : 'Add'}
+                            onAction={() => handleAssetAction(asset.id)}
                           />
                         ))}
                       </div>
@@ -278,16 +342,22 @@ export function PageBuilderPage() {
             activePage={activePage}
             onAddPage={() => setAddPageOpen(true)}
             onSelectPage={(pageId) =>
-              updateDocument((current) => ({
-                ...current,
-                activePageId: pageId,
-              }))
+              {
+                setSelectedSectionId(null)
+                updateDocument((current) => ({
+                  ...current,
+                  activePageId: pageId,
+                }))
+              }
             }
             onRenamePage={(page) => setRenamePageTarget(page)}
             onDeletePage={(page) => setDeletePageTarget(page)}
           />
 
-          <div className='min-h-0 flex-1 overflow-auto px-8 py-8'>
+          <div
+            className='min-h-0 flex-1 overflow-auto px-8 py-8'
+            onClick={() => setSelectedSectionId(null)}
+          >
             <div className='mx-auto w-full max-w-5xl bg-background shadow-sm ring-1 ring-border'>
               {activePage.sections.length === 0 ? (
                 <div className='flex min-h-[520px] flex-col items-center justify-center px-6 py-16 text-center'>
@@ -303,8 +373,11 @@ export function PageBuilderPage() {
                     key={section.id}
                     asset={assetMap.get(section.assetId)}
                     sectionName={`Section ${index + 1}`}
+                    selected={section.id === selectedSection?.id}
                     isFirst={index === 0}
                     isLast={index === activePage.sections.length - 1}
+                    onSelect={() => setSelectedSectionId(section.id)}
+                    onDeselect={() => setSelectedSectionId(null)}
                     onMoveUp={() => moveSection(section.id, -1)}
                     onMoveDown={() => moveSection(section.id, 1)}
                     onRemove={() => removeSection(section.id)}
@@ -370,17 +443,19 @@ export function PageBuilderPage() {
 
 function AssetLibraryItem({
   asset,
-  onAdd,
+  actionLabel,
+  onAction,
 }: {
   asset: PageBuilderAsset
-  onAdd: () => void
+  actionLabel: string
+  onAction: () => void
 }) {
   return (
     <div className='group rounded-md border bg-card text-card-foreground'>
       <button
         type='button'
         className='block w-full overflow-hidden rounded-t-md bg-muted text-start'
-        onClick={onAdd}
+        onClick={onAction}
       >
         <img
           src={asset.imagePath}
@@ -396,8 +471,8 @@ function AssetLibraryItem({
             {readableCategory(asset.category)}
           </p>
         </div>
-        <Button type='button' size='sm' variant='outline' onClick={onAdd}>
-          Add
+        <Button type='button' size='sm' variant='outline' onClick={onAction}>
+          {actionLabel}
         </Button>
       </div>
     </div>
@@ -466,22 +541,38 @@ function PageControls({
 function PageSection({
   asset,
   sectionName,
+  selected,
   isFirst,
   isLast,
+  onSelect,
+  onDeselect,
   onMoveUp,
   onMoveDown,
   onRemove,
 }: {
   asset?: PageBuilderAsset
   sectionName: string
+  selected: boolean
   isFirst: boolean
   isLast: boolean
+  onSelect: () => void
+  onDeselect: () => void
   onMoveUp: () => void
   onMoveDown: () => void
   onRemove: () => void
 }) {
   return (
-    <div className='group relative border-b last:border-b-0 hover:ring-2 hover:ring-ring/30'>
+    <div
+      className={`group relative border-b last:border-b-0 ${
+        selected
+          ? 'z-10 ring-2 ring-purple-500'
+          : 'hover:ring-2 hover:ring-purple-500/20'
+      }`}
+      onClick={(event) => {
+        event.stopPropagation()
+        onSelect()
+      }}
+    >
       {asset ? (
         <img
           src={asset.imagePath}
@@ -497,41 +588,61 @@ function PageSection({
           </p>
         </div>
       )}
-      <div className='absolute right-3 top-3 flex items-center gap-1 rounded-md border bg-background/95 p-1 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100'>
-        <span className='px-2 text-xs text-muted-foreground'>{sectionName}</span>
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon'
-          className='size-7'
-          disabled={isFirst}
-          onClick={onMoveUp}
-        >
-          <ArrowUp />
-          <span className='sr-only'>Move section up</span>
-        </Button>
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon'
-          className='size-7'
-          disabled={isLast}
-          onClick={onMoveDown}
-        >
-          <ArrowDown />
-          <span className='sr-only'>Move section down</span>
-        </Button>
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon'
-          className='size-7'
-          onClick={onRemove}
-        >
-          <Trash2 />
-          <span className='sr-only'>Remove section</span>
-        </Button>
-      </div>
+      {selected && (
+        <>
+          <div className='absolute left-0 top-1/2 h-10 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600 shadow-sm' />
+          <div
+            className='absolute right-3 top-3 flex items-center gap-1 rounded-md border border-purple-300 bg-background/95 p-1 shadow-sm'
+            onClick={(event) => event.stopPropagation()}
+          >
+            <span className='px-2 text-xs font-medium text-purple-700 dark:text-purple-300'>
+              {sectionName}
+            </span>
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon'
+              className='size-7'
+              disabled={isFirst}
+              onClick={onMoveUp}
+            >
+              <ArrowUp />
+              <span className='sr-only'>Move section up</span>
+            </Button>
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon'
+              className='size-7'
+              disabled={isLast}
+              onClick={onMoveDown}
+            >
+              <ArrowDown />
+              <span className='sr-only'>Move section down</span>
+            </Button>
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon'
+              className='size-7'
+              onClick={onRemove}
+            >
+              <Trash2 />
+              <span className='sr-only'>Remove section</span>
+            </Button>
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon'
+              className='size-7'
+              onClick={onDeselect}
+            >
+              <X />
+              <span className='sr-only'>Deselect section</span>
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   )
 }

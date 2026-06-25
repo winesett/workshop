@@ -1044,7 +1044,7 @@ function ImportJsonDialog({
               value={jsonInput}
               onChange={(event) => setJsonInput(event.target.value)}
               placeholder={`{\n  "schema": "${ASSEMBLY_SCHEMA}",\n  "pages": []\n}`}
-              className='min-h-56 font-mono text-xs'
+              className='h-80 resize-none overflow-y-auto font-mono text-xs'
               aria-invalid={preview.errors.length > 0 ? true : undefined}
             />
           </div>

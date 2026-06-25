@@ -500,7 +500,9 @@ export function PageBuilderPage() {
                     key={section.id}
                     sectionId={section.id}
                     asset={assetMap.get(section.assetId)}
-                    sectionName={`Section ${index + 1}`}
+                    sectionName={
+                      assetMap.get(section.assetId)?.name ?? 'Missing section'
+                    }
                     selected={section.id === selectedSection?.id}
                     dragging={sectionDrag?.sectionId === section.id}
                     dragOffsetY={

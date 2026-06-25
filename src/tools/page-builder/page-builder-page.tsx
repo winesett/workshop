@@ -62,6 +62,18 @@ const naturalSort = new Intl.Collator(undefined, {
   sensitivity: 'base',
 })
 
+let transparentDragImage: HTMLImageElement | null = null
+
+function getTransparentDragImage() {
+  if (!transparentDragImage) {
+    transparentDragImage = new Image()
+    transparentDragImage.src =
+      'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
+  }
+
+  return transparentDragImage
+}
+
 type CatalogState =
   | { status: 'loading'; assets: PageBuilderAsset[] }
   | { status: 'ready'; assets: PageBuilderAsset[] }
@@ -461,6 +473,11 @@ export function PageBuilderPage() {
                     onDeselect={() => setSelectedSectionId(null)}
                     onDragStart={(event) => {
                       event.dataTransfer.effectAllowed = 'move'
+                      event.dataTransfer.setDragImage(
+                        getTransparentDragImage(),
+                        0,
+                        0
+                      )
                       event.dataTransfer.setData('text/plain', section.id)
                       setDraggedSectionId(section.id)
                       setSelectedSectionId(section.id)

@@ -194,6 +194,7 @@ export function PageBuilderPage() {
 
   function addSection(assetId: string) {
     const sectionId = crypto.randomUUID()
+    setSelectedSectionId(sectionId)
     setPendingScrollSectionId(sectionId)
 
     updateDocument((current) => ({
@@ -236,6 +237,7 @@ export function PageBuilderPage() {
     if (!selectedSection) return
 
     const sectionId = crypto.randomUUID()
+    setSelectedSectionId(sectionId)
     setPendingScrollSectionId(sectionId)
 
     updateDocument((current) => ({

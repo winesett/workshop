@@ -57,6 +57,7 @@ const CATALOG_PATH = '/local-assets/page-builder/catalog.json'
 const SOURCE_LIBRARY_PATH =
   'src/tools/page-builder/assets/relume-thumbnails'
 const SYNC_COMMAND = 'pnpm sync:page-builder-library'
+const SECTION_MENU_VALUE = '__section_menu__'
 const naturalSort = new Intl.Collator(undefined, {
   numeric: true,
   sensitivity: 'base',
@@ -155,7 +156,7 @@ export function PageBuilderPage() {
     selectedCategory &&
     categoryOptions.some((option) => option === selectedCategory)
       ? selectedCategory
-      : categoryOptions[0]
+      : null
   const visibleCategoryGroup = categoryGroups.find(
     (group) => group.category === visibleCategory
   )
@@ -392,13 +393,20 @@ export function PageBuilderPage() {
             />
             {catalogState.status === 'ready' && categoryOptions.length > 0 && (
               <Select
-                value={visibleCategory}
-                onValueChange={setSelectedCategory}
+                value={visibleCategory ?? SECTION_MENU_VALUE}
+                onValueChange={(value) =>
+                  setSelectedCategory(
+                    value === SECTION_MENU_VALUE ? '' : value
+                  )
+                }
               >
                 <SelectTrigger className='w-full'>
-                  <SelectValue placeholder='Choose a section category' />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={SECTION_MENU_VALUE}>
+                    Section Menu
+                  </SelectItem>
                   {categoryOptions.map((category) => (
                     <SelectItem key={category} value={category}>
                       {readableCategory(category)}
@@ -448,7 +456,7 @@ export function PageBuilderPage() {
                 </section>
               ) : (
                 <p className='text-sm text-muted-foreground'>
-                  No screenshots match that search.
+                  Choose a section category to browse screenshots.
                 </p>
               ))}
           </div>
@@ -503,7 +511,6 @@ export function PageBuilderPage() {
                     isFirst={index === 0}
                     isLast={index === activePage.sections.length - 1}
                     onSelect={() => setSelectedSectionId(section.id)}
-                    onDeselect={() => setSelectedSectionId(null)}
                     onDragHandlePointerDown={(event) => {
                       event.currentTarget.setPointerCapture(event.pointerId)
                       setSelectedSectionId(section.id)
@@ -844,7 +851,6 @@ function PageSection({
   isFirst,
   isLast,
   onSelect,
-  onDeselect,
   onDragHandlePointerDown,
   onDragHandlePointerMove,
   onDragHandlePointerEnd,
@@ -861,7 +867,6 @@ function PageSection({
   isFirst: boolean
   isLast: boolean
   onSelect: () => void
-  onDeselect: () => void
   onDragHandlePointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => void
   onDragHandlePointerMove: (event: ReactPointerEvent<HTMLButtonElement>) => void
   onDragHandlePointerEnd: (event: ReactPointerEvent<HTMLButtonElement>) => void
@@ -964,16 +969,6 @@ function PageSection({
             >
               <Trash2 />
               <span className='sr-only'>Remove section</span>
-            </Button>
-            <Button
-              type='button'
-              variant='ghost'
-              size='icon'
-              className='size-7'
-              onClick={onDeselect}
-            >
-              <X />
-              <span className='sr-only'>Deselect section</span>
             </Button>
           </div>
         </>

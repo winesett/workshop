@@ -831,10 +831,18 @@ function PageSection({
               event.stopPropagation()
               if (sectionRef.current) {
                 const rect = sectionRef.current.getBoundingClientRect()
+                const margin = 24
+                const minOffsetX =
+                  event.clientX + rect.width - window.innerWidth + margin
+                const maxOffsetX = event.clientX - margin
+                const minOffsetY =
+                  event.clientY + rect.height - window.innerHeight + margin
+                const maxOffsetY = event.clientY - margin
+
                 event.dataTransfer.setDragImage(
                   sectionRef.current,
-                  16,
-                  rect.height / 2
+                  clampDragOffset(16, minOffsetX, maxOffsetX),
+                  clampDragOffset(rect.height / 2, minOffsetY, maxOffsetY)
                 )
               }
               onDragStart(event)
@@ -1056,6 +1064,12 @@ function slugify(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
+}
+
+function clampDragOffset(value: number, min: number, max: number) {
+  if (min > max) return Math.max(0, Math.min(value, max))
+
+  return Math.min(Math.max(value, min), max)
 }
 
 function isPageBuilderAsset(value: unknown): value is PageBuilderAsset {

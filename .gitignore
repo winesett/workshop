@@ -29,6 +29,10 @@ dist-ssr
 # Test coverage
 /coverage
 
+# Local Page Builder screenshot library and generated cache
+src/tools/page-builder/assets/relume-thumbnails/
+public/local-assets/page-builder/
+
 # Vitest artifacts (browser screenshots/attachments)
 **/__screenshots__/
 .vitest-attachments/

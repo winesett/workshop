@@ -563,6 +563,11 @@ function PageControls({
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuItem
+            onSelect={() => copyPageBuilderPrompt(document, assetMap)}
+          >
+            Copy Figma prompt
+          </DropdownMenuItem>
+          <DropdownMenuItem
             onSelect={() => exportPageJson(activePage, assetMap)}
           >
             Export JSON
@@ -581,6 +586,49 @@ function PageControls({
       </DropdownMenu>
     </div>
   )
+}
+
+async function copyPageBuilderPrompt(
+  document: PageBuilderDocument,
+  assetMap: Map<string, PageBuilderAsset>
+) {
+  const prompt = buildPageBuilderPrompt(document, assetMap)
+
+  try {
+    await navigator.clipboard.writeText(prompt)
+  } catch {
+    downloadTextFile('relume-page-builder-prompt.txt', prompt)
+  }
+}
+
+function buildPageBuilderPrompt(
+  document: PageBuilderDocument,
+  assetMap: Map<string, PageBuilderAsset>
+) {
+  const lines = [
+    'Build this page in Figma using the Relume Figma Kit (v3.7) Community library.',
+    '',
+    'Use desktop components. Create one frame per page. Assemble sections in the exact order listed. Match each section by category and layout name. If an exact component is unavailable, use the closest component from the same category and note the substitution.',
+  ]
+
+  for (const page of document.pages) {
+    lines.push('', `Page: ${page.name}`)
+
+    if (page.sections.length === 0) {
+      lines.push('No sections selected.')
+      continue
+    }
+
+    for (const [index, section] of page.sections.entries()) {
+      const asset = assetMap.get(section.assetId)
+      const category = asset?.category ?? 'Missing asset'
+      const name = asset?.name ?? section.assetId
+
+      lines.push(`${index + 1}. ${category} / ${name}`)
+    }
+  }
+
+  return lines.join('\n')
 }
 
 function exportPageJson(
@@ -615,6 +663,19 @@ function exportPageJson(
 
   link.href = url
   link.download = `${slugify(page.name || 'page')}-layouts.json`
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+function downloadTextFile(filename: string, text: string) {
+  const blob = new Blob([`${text}\n`], {
+    type: 'text/plain',
+  })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+
+  link.href = url
+  link.download = filename
   link.click()
   URL.revokeObjectURL(url)
 }

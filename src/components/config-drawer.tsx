@@ -20,7 +20,6 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -28,18 +27,6 @@ import {
 import { useSidebar } from './ui/sidebar'
 
 export function ConfigDrawer() {
-  const { setOpen } = useSidebar()
-  const { resetDir } = useDirection()
-  const { resetTheme } = useTheme()
-  const { resetLayout } = useLayout()
-
-  const handleReset = () => {
-    setOpen(true)
-    resetDir()
-    resetTheme()
-    resetLayout()
-  }
-
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -59,23 +46,47 @@ export function ConfigDrawer() {
             Adjust the appearance and layout to suit your preferences.
           </SheetDescription>
         </SheetHeader>
-        <div className='space-y-6 overflow-y-auto px-4'>
-          <ThemeConfig />
-          <SidebarConfig />
-          <LayoutConfig />
-          <DirConfig />
-        </div>
-        <SheetFooter className='gap-2'>
-          <Button
-            variant='destructive'
-            onClick={handleReset}
-            aria-label='Reset all settings to default values'
-          >
-            Reset
-          </Button>
-        </SheetFooter>
+        <AppConfigurationPanel className='overflow-y-auto px-4' />
       </SheetContent>
     </Sheet>
+  )
+}
+
+export function AppConfigurationPanel({
+  className,
+  includeTheme = true,
+}: {
+  className?: string
+  includeTheme?: boolean
+}) {
+  const { setOpen } = useSidebar()
+  const { resetDir } = useDirection()
+  const { resetTheme } = useTheme()
+  const { resetLayout } = useLayout()
+
+  const handleReset = () => {
+    setOpen(true)
+    resetDir()
+    if (includeTheme) resetTheme()
+    resetLayout()
+  }
+
+  return (
+    <div className={cn('space-y-6', className)}>
+      {includeTheme && <ThemeConfig />}
+      <SidebarConfig />
+      <LayoutConfig />
+      <DirConfig />
+      <div className='flex justify-end'>
+        <Button
+          variant='destructive'
+          onClick={handleReset}
+          aria-label='Reset all settings to default values'
+        >
+          Reset
+        </Button>
+      </div>
+    </div>
   )
 }
 

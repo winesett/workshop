@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "workshop.pageBuilder.assembly.v1",
+  "pageName": "Homepage Concept 1",
+  "spacing": 0,
+  "sections": [
+    {
+      "category": "header",
+      "selection": 1
+    },
+    {
+      "category": "hero",
+      "selection": 3
+    },
+    {
+      "category": "logos",
+      "selection": 1
+    },
+    {
+      "category": "features",
+      "selection": 2
+    },
+    {
+      "category": "cta",
+      "selection": 1
+    },
+    {
+      "category": "footer",
+      "selection": 1
+    }
+  ]
+}

@@ -25880,41 +25880,22 @@ const DEFAULT_RECIPE = {
 };
 const CODEX_LINK_PAYLOAD = {
   "schemaVersion": "workshop.pageBuilder.assembly.v1",
-  "pageName": "Codex Complex SaaS Landing Page",
+  "pageName": "Home",
   "spacing": 0,
   "sections": [
     {
-      "ref": "Navbars / Navbar 12"
+      "ref": "Header / 44 /",
+      "category": "Header",
+      "name": "44 /",
+      "kind": "componentSet",
+      "key": "d6cdc0ef17b4d1b8980c5e9f06d462917080a6b4"
     },
     {
-      "ref": "Hero-Headers / Header 21"
-    },
-    {
-      "ref": "Logos / Logo 3"
-    },
-    {
-      "ref": "Features / Layout 42"
-    },
-    {
-      "ref": "Features / Layout 117"
-    },
-    {
-      "ref": "Features / Layout 238"
-    },
-    {
-      "ref": "Pricing / Pricing 7"
-    },
-    {
-      "ref": "Testimonials / Testimonial 12"
-    },
-    {
-      "ref": "FAQ / FAQ 5"
-    },
-    {
-      "ref": "CTA / CTA 14"
-    },
-    {
-      "ref": "Footers / Footer 10"
+      "ref": "Header / 51 /",
+      "category": "Header",
+      "name": "51 /",
+      "kind": "componentSet",
+      "key": "df3c9cf275f33218510900f8f172030596998773"
     }
   ]
 };
@@ -26036,11 +26017,12 @@ function parseRecipe(recipeJson) {
 
 function resolveRecipeSections(recipe) {
   return recipe.sections.map((section, index) => {
-    const ref = resolveSectionRef(section);
+    const directRegistryItem = resolveRegistryItem(section);
+    const ref = directRegistryItem ? directRegistryItem.ref : resolveSectionRef(section);
     return {
       order: index,
       ref,
-      registryItem: findRegistryItem(ref),
+      registryItem: directRegistryItem || findRegistryItem(ref),
     };
   });
 }
@@ -26104,6 +26086,13 @@ function findRegistryItem(ref) {
   const key = normalizeKey(ref);
   const item = registryItems.find((candidate) => normalizeKey(candidate.ref) === key);
   return item || null;
+}
+
+function resolveRegistryItem(section) {
+  if (!section || typeof section !== "object" || Array.isArray(section)) return null;
+  const componentKey = cleanString(section.key);
+  if (!componentKey) return null;
+  return registryItems.find((candidate) => candidate.key === componentKey) || null;
 }
 
 function groupReferencesByCategory(items) {

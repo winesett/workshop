@@ -4,7 +4,7 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..");
 const inputPath = process.argv[2] || "/Users/codywinesett/Documents/Handoff/relume-component-set-name-to-key.json";
 const outputPath =
-  process.argv[3] || "/Users/codywinesett/Documents/Handoff/relume-page-builder-registry.json";
+  process.argv[3] || path.join(root, "data", "relume-page-builder-registry.json");
 const referencePath = "/Users/codywinesett/Downloads/page-builder-reference-library.txt";
 
 const keyMap = JSON.parse(fs.readFileSync(inputPath, "utf8"));

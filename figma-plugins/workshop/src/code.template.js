@@ -120,11 +120,12 @@ function parseRecipe(recipeJson) {
 
 function resolveRecipeSections(recipe) {
   return recipe.sections.map((section, index) => {
-    const ref = resolveSectionRef(section);
+    const directRegistryItem = resolveRegistryItem(section);
+    const ref = directRegistryItem ? directRegistryItem.ref : resolveSectionRef(section);
     return {
       order: index,
       ref,
-      registryItem: findRegistryItem(ref),
+      registryItem: directRegistryItem || findRegistryItem(ref),
     };
   });
 }
@@ -188,6 +189,13 @@ function findRegistryItem(ref) {
   const key = normalizeKey(ref);
   const item = registryItems.find((candidate) => normalizeKey(candidate.ref) === key);
   return item || null;
+}
+
+function resolveRegistryItem(section) {
+  if (!section || typeof section !== "object" || Array.isArray(section)) return null;
+  const componentKey = cleanString(section.key);
+  if (!componentKey) return null;
+  return registryItems.find((candidate) => candidate.key === componentKey) || null;
 }
 
 function groupReferencesByCategory(items) {

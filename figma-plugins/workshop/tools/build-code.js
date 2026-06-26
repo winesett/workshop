@@ -3,7 +3,7 @@ const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
 const referencePath = "/Users/codywinesett/Downloads/page-builder-reference-library.txt";
-const registryPath = "/Users/codywinesett/Documents/Handoff/relume-page-builder-registry.json";
+const registryPath = path.join(root, "data", "relume-page-builder-registry.json");
 const samplePayloadPath = path.join(root, "sample-page-builder-payload.json");
 const codexLinkPayloadPath = path.join(root, "codex-link-payload.json");
 const templatePath = path.join(root, "src", "code.template.js");

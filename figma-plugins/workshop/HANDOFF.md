@@ -20,7 +20,7 @@ Confirmed working:
 ## Developer Flow
 
 ```sh
-cd figma/workshop
+cd figma-plugins/workshop
 npm run refresh-registry
 npm run build
 npm run validate
@@ -66,9 +66,9 @@ The source key file is:
 
 `/Users/codywinesett/Documents/Handoff/relume-component-set-name-to-key.json`
 
-It contains component-set keys. The converted registry is:
+It contains component-set keys. The converted registry is committed at:
 
-`/Users/codywinesett/Documents/Handoff/relume-page-builder-registry.json`
+`figma-plugins/workshop/data/relume-page-builder-registry.json`
 
 The converter canonicalizes Relume source names like:
 

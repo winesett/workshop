@@ -54,7 +54,7 @@ After reloading the development plugin in Figma, **Codex Link** assembles that p
 ## Build
 
 ```sh
-cd figma/workshop
+cd figma-plugins/workshop
 npm run refresh-registry
 npm run build
 npm run validate
@@ -66,9 +66,9 @@ Load `manifest.json` in Figma as a development plugin.
 
 - `sample-page-builder-payload.json`: default textarea payload.
 - `codex-link-payload.json`: direct Codex Link payload exported from Workshop.
+- `data/relume-page-builder-registry.json`: generated component-key registry embedded into `code.js`.
 - `/Users/codywinesett/Downloads/page-builder-reference-library.txt`: canonical reference list.
 - `/Users/codywinesett/Documents/Handoff/relume-component-set-name-to-key.json`: source Relume component-set key map.
-- `/Users/codywinesett/Documents/Handoff/relume-page-builder-registry.json`: generated registry embedded into `code.js`.
 
 ## Notes
 

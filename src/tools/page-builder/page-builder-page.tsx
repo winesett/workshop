@@ -1045,9 +1045,9 @@ function PageControls({
             Export JSON
           </DropdownMenuItem>
           <DropdownMenuItem
-            onSelect={() => exportCodexLinkPayload(activePage, assetMap)}
+            onSelect={() => writeCodexLinkPayload(activePage, assetMap)}
           >
-            Download Codex Link payload
+            Write Codex Link payload
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => onRenamePage(activePage)}>
             Rename page
@@ -1378,29 +1378,63 @@ function exportPageJson(
   URL.revokeObjectURL(url)
 }
 
-function exportCodexLinkPayload(
+async function writeCodexLinkPayload(
   page: PageBuilderPageModel,
   assetMap: Map<string, PageBuilderAsset>
 ) {
-  const payload = {
+  const payload = buildCodexLinkPayload(page, assetMap)
+
+  try {
+    const response = await fetch('/__workshop/write-codex-link-payload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const result = (await response.json()) as {
+      error?: string
+      sectionCount?: number
+    }
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Unable to write Codex Link payload.')
+    }
+
+    toast.success(
+      `Codex Link payload written with ${result.sectionCount ?? page.sections.length} sections`
+    )
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : String(error))
+  }
+}
+
+function buildCodexLinkPayload(
+  page: PageBuilderPageModel,
+  assetMap: Map<string, PageBuilderAsset>
+) {
+  return {
     schemaVersion: ASSEMBLY_SCHEMA,
     pageName: page.name || 'Untitled Page',
     spacing: 0,
     sections: page.sections.map((section) => {
       const asset = assetMap.get(section.assetId)
-      const ref = asset
-        ? `${asset.category} / ${asset.name}`
-        : (section.unresolved?.source ?? section.assetId)
 
-      return { ref }
+      if (asset) {
+        return {
+          ref: `${asset.category} / ${asset.name}`,
+          category: asset.category,
+          name: asset.name,
+          assetId: asset.id,
+        }
+      }
+
+      return {
+        ref: section.unresolved?.source ?? section.assetId,
+        category: section.unresolved?.category,
+        name: section.unresolved?.name,
+        assetId: section.unresolved?.assetId ?? section.assetId,
+      }
     }),
   }
-
-  downloadTextFile(
-    'codex-link-payload.json',
-    `${JSON.stringify(payload, null, 2)}\n`
-  )
-  toast.success('Codex Link payload downloaded')
 }
 
 function parseAssemblyImport(

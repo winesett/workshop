@@ -1,4 +1,4 @@
-import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -85,17 +85,17 @@ export function HtmlSandboxPage() {
             }
           >
             <ComparisonPanel title='Original screenshot reference'>
-              <ScaledArtboardFrame>
+              <ArtboardFrame>
                 <img
                   src={TARGET_ASSET.imagePath}
                   alt={`${TARGET_ASSET.category} ${TARGET_ASSET.name}`}
                   className='block size-full bg-white'
                 />
-              </ScaledArtboardFrame>
+              </ArtboardFrame>
             </ComparisonPanel>
 
             <ComparisonPanel title='HTML reconstruction'>
-              <ScaledArtboardFrame>
+              <ArtboardFrame>
                 <FeaturesLayout14Renderer />
                 {overlayOpacity > 0 && (
                   <img
@@ -106,7 +106,7 @@ export function HtmlSandboxPage() {
                     style={{ opacity: overlayOpacity / 100 }}
                   />
                 )}
-              </ScaledArtboardFrame>
+              </ArtboardFrame>
             </ComparisonPanel>
           </div>
         </div>
@@ -115,47 +115,13 @@ export function HtmlSandboxPage() {
   )
 }
 
-function ScaledArtboardFrame({ children }: { children: ReactNode }) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [scale, setScale] = useState(1)
-
-  useLayoutEffect(() => {
-    const element = containerRef.current
-    if (!element) return
-
-    const updateScale = () => {
-      const nextScale = Math.min(
-        1,
-        Math.max(0.1, element.clientWidth / TARGET_WIDTH)
-      )
-      setScale(Number.isFinite(nextScale) ? nextScale : 1)
-    }
-
-    updateScale()
-
-    const resizeObserver = new ResizeObserver(updateScale)
-    resizeObserver.observe(element)
-
-    return () => resizeObserver.disconnect()
-  }, [])
-
+function ArtboardFrame({ children }: { children: ReactNode }) {
   return (
     <div
-      ref={containerRef}
-      className='relative w-full overflow-hidden border bg-white shadow-sm'
-      style={{ height: TARGET_HEIGHT * scale }}
+      className='relative overflow-auto border bg-white shadow-sm'
+      style={{ width: TARGET_WIDTH, height: TARGET_HEIGHT }}
     >
-      <div
-        className='absolute top-0 left-0'
-        style={{
-          width: TARGET_WIDTH,
-          height: TARGET_HEIGHT,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-        }}
-      >
-        {children}
-      </div>
+      <div className='absolute top-0 left-0 size-full'>{children}</div>
     </div>
   )
 }

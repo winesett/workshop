@@ -1,0 +1,10 @@
+{
+  "name": "workshop-figma-connection",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "node tools/build-code.js",
+    "refresh-registry": "node tools/convert-relume-key-map.js",
+    "validate": "node tools/build-code.js --check"
+  }
+}

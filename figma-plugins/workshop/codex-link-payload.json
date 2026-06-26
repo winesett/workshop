@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "workshop.pageBuilder.assembly.v1",
+  "pageName": "Home",
+  "spacing": 0,
+  "sections": [
+    {
+      "ref": "Header / 44 /",
+      "category": "Header",
+      "name": "44 /",
+      "kind": "componentSet",
+      "key": "d6cdc0ef17b4d1b8980c5e9f06d462917080a6b4"
+    },
+    {
+      "ref": "Header / 51 /",
+      "category": "Header",
+      "name": "51 /",
+      "kind": "componentSet",
+      "key": "df3c9cf275f33218510900f8f172030596998773"
+    }
+  ]
+}

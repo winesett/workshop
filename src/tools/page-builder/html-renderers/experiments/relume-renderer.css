@@ -67,9 +67,11 @@
 
 .relume-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 24px;
-  height: 48px;
+  gap: 12px 24px;
+  width: 100%;
+  max-width: 600px;
 }
 
 .relume-button-primary {

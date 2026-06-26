@@ -3,6 +3,64 @@ import placeholderLightbox from './assets/placeholder-lightbox.png'
 import { RelumeChevronIcon } from './relume-icons'
 import { relumeStyleFacts } from './relume-style-facts'
 
+export type FeaturesLayout2Content = {
+  tagline: string[]
+  heading: string[]
+  body: string[]
+  primaryButtonLabel: string[]
+  secondaryButtonLabel: string[]
+}
+
+export type FeaturesLayout2ContentSlot = {
+  id: keyof FeaturesLayout2Content
+  label: string
+  ariaPath: string
+  input: 'text' | 'textarea'
+}
+
+export const featuresLayout2DefaultContent = {
+  tagline: ['Tagline'],
+  heading: ['Medium length section heading goes here'],
+  body: [
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, mi quis viverra ornare, eros dolor interdum nulla, ut commodo diam libero vitae erat.',
+  ],
+  primaryButtonLabel: ['Button'],
+  secondaryButtonLabel: ['Button'],
+} satisfies FeaturesLayout2Content
+
+export const featuresLayout2ContentSlots = [
+  {
+    id: 'tagline',
+    label: 'Tagline',
+    ariaPath: 'Section Title / Tagline Wrapper / Tagline',
+    input: 'text',
+  },
+  {
+    id: 'heading',
+    label: 'Heading',
+    ariaPath: 'Section Title / Content / Heading',
+    input: 'textarea',
+  },
+  {
+    id: 'body',
+    label: 'Body',
+    ariaPath: 'Section Title / Content / Text',
+    input: 'textarea',
+  },
+  {
+    id: 'primaryButtonLabel',
+    label: 'Primary button',
+    ariaPath: 'Actions / Button',
+    input: 'text',
+  },
+  {
+    id: 'secondaryButtonLabel',
+    label: 'Secondary button',
+    ariaPath: 'Actions / Button',
+    input: 'text',
+  },
+] satisfies FeaturesLayout2ContentSlot[]
+
 export const layout2Tuning = {
   sectionFrameWidth: 1440,
   sectionFrameHeight: 864,
@@ -19,8 +77,14 @@ export const layout2Tuning = {
   titleContentGap: 24,
 } as const
 
-export function FeaturesLayout2Renderer() {
-  const styles = createLayout2Styles()
+export function FeaturesLayout2Renderer({
+  content = featuresLayout2DefaultContent,
+  fitContent = false,
+}: {
+  content?: FeaturesLayout2Content
+  fitContent?: boolean
+}) {
+  const styles = createLayout2Styles(fitContent)
 
   return (
     <section
@@ -33,28 +97,60 @@ export function FeaturesLayout2Renderer() {
           <div aria-label='Content' style={styles.contentColumn}>
             <div aria-label='Section Title' style={styles.sectionTitle}>
               <div aria-label='Tagline Wrapper' style={styles.taglineWrapper}>
-                <p className='relume-tagline'>Tagline</p>
+                {content.tagline.map((tagline, index) => (
+                  <p
+                    key={index}
+                    aria-label='Tagline'
+                    className='relume-tagline'
+                  >
+                    {tagline}
+                  </p>
+                ))}
               </div>
 
               <div aria-label='Content' style={styles.titleContent}>
-                <h2 className='relume-heading-h2 relume-text-width-600'>
-                  Medium length section heading goes here
-                </h2>
-                <p className='relume-text-medium relume-text-width-600'>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Suspendisse varius enim in eros elementum tristique. Duis
-                  cursus, mi quis viverra ornare, eros dolor interdum nulla, ut
-                  commodo diam libero vitae erat.
-                </p>
+                {content.heading.map((heading, index) => (
+                  <h2
+                    key={index}
+                    aria-label='Heading'
+                    className='relume-heading-h2 relume-text-width-600'
+                  >
+                    {heading}
+                  </h2>
+                ))}
+                <div aria-label='Text' style={styles.bodyStack}>
+                  {content.body.map((bodyBlock, index) => (
+                    <p
+                      key={index}
+                      aria-label='Text'
+                      className='relume-text-medium relume-text-width-600'
+                    >
+                      {bodyBlock}
+                    </p>
+                  ))}
+                </div>
               </div>
             </div>
 
             <div aria-label='Actions' className='relume-actions'>
-              <button className='relume-button-primary'>Button</button>
-              <button className='relume-button-link'>
-                Button
-                <RelumeChevronIcon className='relume-chevron' />
-              </button>
+              {content.primaryButtonLabel.map((label, index) => (
+                <button
+                  key={`primary-${index}`}
+                  aria-label='Button'
+                  className='relume-button-primary'
+                >
+                  {label}
+                </button>
+              ))}
+              {content.secondaryButtonLabel.map((label, index) => (
+                <button
+                  key={`secondary-${index}`}
+                  className='relume-button-link'
+                >
+                  {label}
+                  <RelumeChevronIcon className='relume-chevron' />
+                </button>
+              ))}
             </div>
           </div>
 
@@ -71,7 +167,7 @@ export function FeaturesLayout2Renderer() {
   )
 }
 
-function createLayout2Styles() {
+function createLayout2Styles(fitContent: boolean) {
   const { colors } = relumeStyleFacts
 
   return {
@@ -80,7 +176,8 @@ function createLayout2Styles() {
       flexDirection: 'column',
       alignItems: 'center',
       width: layout2Tuning.sectionFrameWidth,
-      height: layout2Tuning.sectionFrameHeight,
+      height: fitContent ? 'auto' : layout2Tuning.sectionFrameHeight,
+      minHeight: layout2Tuning.sectionFrameHeight,
       padding: `${layout2Tuning.sectionPaddingY}px ${layout2Tuning.sectionPaddingX}px`,
       boxSizing: 'border-box',
       background: colors.white,
@@ -91,14 +188,16 @@ function createLayout2Styles() {
       flexDirection: 'column',
       alignItems: 'flex-start',
       width: layout2Tuning.containerWidth,
-      height: layout2Tuning.componentHeight,
+      height: fitContent ? 'auto' : layout2Tuning.componentHeight,
+      minHeight: layout2Tuning.componentHeight,
     },
     component: {
       display: 'flex',
       alignItems: 'center',
       gap: layout2Tuning.columnGap,
       width: layout2Tuning.containerWidth,
-      height: layout2Tuning.componentHeight,
+      height: fitContent ? 'auto' : layout2Tuning.componentHeight,
+      minHeight: layout2Tuning.componentHeight,
     },
     contentColumn: {
       display: 'flex',
@@ -123,6 +222,12 @@ function createLayout2Styles() {
       display: 'flex',
       flexDirection: 'column',
       gap: layout2Tuning.titleContentGap,
+      width: layout2Tuning.leftColumnWidth,
+    },
+    bodyStack: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12,
       width: layout2Tuning.leftColumnWidth,
     },
     mediaColumn: {

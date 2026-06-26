@@ -40,6 +40,11 @@ export const sidebarData: SidebarData = {
           url: '/workshop/tools/page-builder/html-sandbox',
           icon: FlaskConical,
         },
+        {
+          title: 'Content Slot Sandbox',
+          url: '/workshop/tools/page-builder/content-sandbox',
+          icon: FlaskConical,
+        },
       ],
     },
   ],

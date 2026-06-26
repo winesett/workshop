@@ -59,7 +59,11 @@ export function FeaturesLayout1Renderer() {
           </div>
 
           <div aria-label='Placeholder Image' style={styles.mediaColumn}>
-            <img src={placeholderImage} alt='Image placeholder' style={styles.media} />
+            <img
+              src={placeholderImage}
+              alt='Image placeholder'
+              style={styles.media}
+            />
           </div>
         </div>
       </div>
@@ -68,7 +72,7 @@ export function FeaturesLayout1Renderer() {
 }
 
 function createLayout1Styles() {
-  const { colors, fontFamily, typography, ui } = relumeStyleFacts
+  const { colors, fontFamily, textStyles, ui } = relumeStyleFacts
 
   return {
     section: {
@@ -124,24 +128,18 @@ function createLayout1Styles() {
     },
     tagline: {
       margin: 0,
-      fontSize: typography.tagline.fontSize,
-      lineHeight: typography.tagline.lineHeight,
-      fontWeight: 600,
+      ...textStyles.heading.tagline,
     },
     heading: {
       margin: 0,
       width: layout1Tuning.leftColumnWidth,
-      fontSize: typography.h2.fontSize,
-      lineHeight: typography.h2.lineHeight,
-      fontWeight: typography.h2.fontWeight,
+      ...textStyles.heading.h2,
       letterSpacing: 0,
     },
     body: {
       margin: 0,
       width: layout1Tuning.leftColumnWidth,
-      fontSize: typography.textMedium.fontSize,
-      lineHeight: typography.textMedium.lineHeight,
-      fontWeight: typography.textMedium.fontWeight,
+      ...textStyles.text.medium.normal,
       letterSpacing: 0,
     },
     buttonGroup: {
@@ -157,10 +155,7 @@ function createLayout1Styles() {
       borderRadius: ui.radiusSmall,
       background: colors.white,
       color: colors.black,
-      fontFamily,
-      fontSize: typography.textRegular.fontSize,
-      lineHeight: typography.textRegular.lineHeight,
-      fontWeight: typography.textRegular.fontWeight,
+      ...textStyles.text.regular.normal,
     },
     linkButton: {
       display: 'flex',
@@ -172,13 +167,10 @@ function createLayout1Styles() {
       borderRadius: ui.radiusSmall,
       background: 'transparent',
       color: colors.black,
-      fontFamily,
-      fontSize: typography.textRegular.fontSize,
-      lineHeight: typography.textRegular.lineHeight,
-      fontWeight: typography.textRegular.fontWeight,
+      ...textStyles.text.regular.normal,
     },
     chevron: {
-      fontSize: typography.textRegular.fontSize,
+      fontSize: textStyles.text.regular.normal.fontSize,
       lineHeight: 1,
     },
     mediaColumn: {

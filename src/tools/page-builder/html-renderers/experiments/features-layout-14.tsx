@@ -38,10 +38,7 @@ export function FeaturesLayout14Renderer() {
           <div aria-label='Content' style={styles.contentColumn}>
             <div aria-label='Content' style={styles.contentBody}>
               <div aria-label='Section Title' style={styles.sectionTitle}>
-                <div
-                  aria-label='Tagline Wrapper'
-                  style={styles.taglineWrapper}
-                >
+                <div aria-label='Tagline Wrapper' style={styles.taglineWrapper}>
                   <p style={styles.tagline}>Tagline</p>
                 </div>
 
@@ -117,7 +114,7 @@ function LogoMark({ alt }: { alt: string }) {
 }
 
 function createLayout14Styles() {
-  const { colors, fontFamily, typography, ui } = relumeStyleFacts
+  const { colors, fontFamily, textStyles, ui } = relumeStyleFacts
 
   return {
     section: {
@@ -174,24 +171,18 @@ function createLayout14Styles() {
     },
     tagline: {
       margin: 0,
-      fontSize: typography.tagline.fontSize,
-      lineHeight: typography.tagline.lineHeight,
-      fontWeight: 700,
+      ...textStyles.heading.tagline,
     },
     heading: {
       margin: 0,
       maxWidth: layout14Tuning.textBlockWidth,
-      fontSize: typography.h2.fontSize,
-      lineHeight: typography.h2.lineHeight,
-      fontWeight: typography.h2.fontWeight,
+      ...textStyles.heading.h2,
       letterSpacing: 0,
     },
     body: {
       margin: 0,
       maxWidth: layout14Tuning.textBlockWidth,
-      fontSize: typography.textMedium.fontSize,
-      lineHeight: typography.textMedium.lineHeight,
-      fontWeight: typography.textMedium.fontWeight,
+      ...textStyles.text.medium.normal,
       letterSpacing: 0,
     },
     logoRow: {
@@ -214,10 +205,7 @@ function createLayout14Styles() {
       borderRadius: ui.radiusSmall,
       background: colors.white,
       color: colors.black,
-      fontFamily,
-      fontSize: typography.textRegular.fontSize,
-      lineHeight: typography.textRegular.lineHeight,
-      fontWeight: typography.textRegular.fontWeight,
+      ...textStyles.text.regular.normal,
     },
     linkButton: {
       display: 'flex',
@@ -229,13 +217,10 @@ function createLayout14Styles() {
       borderRadius: ui.radiusSmall,
       background: 'transparent',
       color: colors.black,
-      fontFamily,
-      fontSize: typography.textRegular.fontSize,
-      lineHeight: typography.textRegular.lineHeight,
-      fontWeight: typography.textRegular.fontWeight,
+      ...textStyles.text.regular.normal,
     },
     chevron: {
-      fontSize: typography.textRegular.fontSize,
+      fontSize: textStyles.text.regular.normal.fontSize,
       lineHeight: 1,
     },
     mediaColumn: {

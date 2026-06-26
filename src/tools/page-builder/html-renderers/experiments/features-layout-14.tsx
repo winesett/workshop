@@ -15,10 +15,14 @@ export const layout14Tuning = {
   mediaBlockHeight: 640,
   logoWidth: 120,
   logoHeight: 48,
-  logoRowGap: 16,
-  contentStackGap: 24,
+  logoColumnGap: 32,
+  logoRowGap: 24,
+  logoPaddingRight: 8,
+  contentStackGap: 32,
   contentBodyGap: 24,
   sectionTitleGap: 16,
+  taglineWrapperGap: 0,
+  titleContentGap: 24,
   buttonHeight: 48,
   buttonPaddingX: 24,
   buttonGroupGap: 24,
@@ -34,16 +38,24 @@ export function FeaturesLayout14Renderer() {
           <div aria-label='Content' style={styles.contentColumn}>
             <div aria-label='Content' style={styles.contentBody}>
               <div aria-label='Section Title' style={styles.sectionTitle}>
-                <p style={styles.tagline}>Tagline</p>
-                <h2 style={styles.heading}>
-                  Medium length section heading goes here
-                </h2>
-                <p style={styles.body}>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Suspendisse varius enim in eros elementum tristique. Duis
-                  cursus, mi quis viverra ornare, eros dolor interdum nulla, ut
-                  commodo diam libero vitae erat.
-                </p>
+                <div
+                  aria-label='Tagline Wrapper'
+                  style={styles.taglineWrapper}
+                >
+                  <p style={styles.tagline}>Tagline</p>
+                </div>
+
+                <div aria-label='Content' style={styles.titleContent}>
+                  <h2 style={styles.heading}>
+                    Medium length section heading goes here
+                  </h2>
+                  <p style={styles.body}>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Suspendisse varius enim in eros elementum tristique. Duis
+                    cursus, mi quis viverra ornare, eros dolor interdum nulla,
+                    ut commodo diam libero vitae erat.
+                  </p>
+                </div>
               </div>
 
               <div aria-label='Logos' style={styles.logoRow}>
@@ -149,6 +161,17 @@ function createLayout14Styles() {
       gap: layout14Tuning.sectionTitleGap,
       maxWidth: layout14Tuning.textBlockWidth,
     },
+    taglineWrapper: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: layout14Tuning.taglineWrapperGap,
+    },
+    titleContent: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: layout14Tuning.titleContentGap,
+      maxWidth: layout14Tuning.textBlockWidth,
+    },
     tagline: {
       margin: 0,
       fontSize: typography.tagline.fontSize,
@@ -172,10 +195,12 @@ function createLayout14Styles() {
       letterSpacing: 0,
     },
     logoRow: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(4, max-content)',
+      display: 'flex',
+      flexWrap: 'wrap',
       alignItems: 'center',
-      gap: layout14Tuning.logoRowGap,
+      columnGap: layout14Tuning.logoColumnGap,
+      rowGap: layout14Tuning.logoRowGap,
+      paddingRight: layout14Tuning.logoPaddingRight,
     },
     buttonGroup: {
       display: 'flex',

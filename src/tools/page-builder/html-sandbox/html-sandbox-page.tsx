@@ -10,8 +10,8 @@ const TARGET_ASSET = {
   name: 'Layout 14',
   imagePath: '/local-assets/page-builder/Features/Layout%2014.png',
 }
-const TARGET_WIDTH = 1024
-const TARGET_HEIGHT = 615
+const TARGET_WIDTH = 1440
+const TARGET_HEIGHT = 860
 
 type ComparisonMode = 'side-by-side' | 'stacked'
 

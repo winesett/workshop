@@ -1,5 +1,4 @@
 import placeholderLightbox from './assets/placeholder-lightbox.png'
-import placeholderLogo from './assets/placeholder-logo.png'
 
 export function FeaturesLayout14Renderer() {
   return (
@@ -19,11 +18,11 @@ export function FeaturesLayout14Renderer() {
             vitae erat.
           </p>
 
-          <div className='mt-[30px] grid max-w-[410px] grid-cols-4 items-center gap-[16px]'>
-            <LogoMark alt='Webflow logo placeholder' />
-            <LogoMark alt='Relume logo placeholder' />
-            <LogoMark alt='Webflow logo placeholder' />
-            <LogoMark alt='Relume logo placeholder' />
+          <div className='mt-[30px] grid max-w-[410px] grid-cols-4 items-center gap-[18px]'>
+            <LogoMark label='Webflow' mark='W' />
+            <LogoMark label='Relume' mark='R' />
+            <LogoMark label='Webflow' mark='W' />
+            <LogoMark label='Relume' mark='R' />
           </div>
 
           <div className='mt-[34px] flex items-center gap-[17px]'>
@@ -51,12 +50,13 @@ export function FeaturesLayout14Renderer() {
   )
 }
 
-function LogoMark({ alt }: { alt: string }) {
+function LogoMark({ label, mark }: { label: string; mark: string }) {
   return (
-    <img
-      src={placeholderLogo}
-      alt={alt}
-      className='h-[30px] w-[82px] object-contain object-left'
-    />
+    <div className='flex items-center gap-2 whitespace-nowrap'>
+      <span className='flex size-[18px] items-center justify-center bg-black text-[10px] leading-none font-bold text-white'>
+        {mark}
+      </span>
+      <span className='text-[14px] leading-none font-bold'>{label}</span>
+    </div>
   )
 }

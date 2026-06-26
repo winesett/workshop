@@ -19,7 +19,7 @@ export function FeaturesLayout14Renderer() {
             vitae erat.
           </p>
 
-          <div className='mt-[30px] grid max-w-[410px] grid-cols-4 items-center gap-[18px]'>
+          <div className='mt-[30px] grid max-w-[516px] grid-cols-4 items-center gap-[12px]'>
             <LogoMark alt='Webflow logo placeholder' />
             <LogoMark alt='Relume logo placeholder' />
             <LogoMark alt='Webflow logo placeholder' />
@@ -53,11 +53,11 @@ export function FeaturesLayout14Renderer() {
 
 function LogoMark({ alt }: { alt: string }) {
   return (
-    <span className='block h-6 w-[88px] overflow-hidden'>
+    <span className='block h-12 w-[120px] overflow-hidden'>
       <img
         src={placeholderLogo}
         alt={alt}
-        className='h-auto w-[132px] max-w-none object-contain object-left-top'
+        className='h-12 w-[120px] max-w-none object-contain object-left-top'
       />
     </span>
   )

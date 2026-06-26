@@ -39,11 +39,11 @@ export function FeaturesLayout14Renderer() {
           </div>
         </div>
 
-        <div className='flex items-center justify-end'>
+        <div className='flex items-start justify-end pt-[32px]'>
           <img
             src={placeholderLightbox}
             alt='Video placeholder'
-            className='h-[488px] w-[428px] object-fill'
+            className='h-[428px] w-[428px] object-cover'
           />
         </div>
       </div>

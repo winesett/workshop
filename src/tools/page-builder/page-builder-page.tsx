@@ -1022,6 +1022,15 @@ function PageControls({
           >
             Download Reference Library
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() =>
+              window.location.assign(
+                '/workshop/tools/page-builder/html-sandbox'
+              )
+            }
+          >
+            HTML Sandbox
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={onImportJson}>
             Import from JSON
           </DropdownMenuItem>

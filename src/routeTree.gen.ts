@@ -16,6 +16,7 @@ import { Route as AuthenticatedWorkshopSettingsRouteImport } from './routes/_aut
 import { Route as AuthenticatedWorkshopCanvasRouteImport } from './routes/_authenticated/workshop/canvas'
 import { Route as AuthenticatedWorkshopToolsPageBuilderRouteImport } from './routes/_authenticated/workshop/tools/page-builder'
 import { Route as AuthenticatedWorkshopProjectsProjectIdRouteImport } from './routes/_authenticated/workshop/projects/$projectId'
+import { Route as AuthenticatedWorkshopToolsPageBuilderHtmlSandboxRouteImport } from './routes/_authenticated/workshop/tools/page-builder_.html-sandbox'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -56,6 +57,12 @@ const AuthenticatedWorkshopProjectsProjectIdRoute =
     path: '/workshop/projects/$projectId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedWorkshopToolsPageBuilderHtmlSandboxRoute =
+  AuthenticatedWorkshopToolsPageBuilderHtmlSandboxRouteImport.update({
+    id: '/workshop/tools/page-builder_/html-sandbox',
+    path: '/workshop/tools/page-builder/html-sandbox',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/workshop/': typeof AuthenticatedWorkshopIndexRoute
   '/workshop/projects/$projectId': typeof AuthenticatedWorkshopProjectsProjectIdRoute
   '/workshop/tools/page-builder': typeof AuthenticatedWorkshopToolsPageBuilderRoute
+  '/workshop/tools/page-builder/html-sandbox': typeof AuthenticatedWorkshopToolsPageBuilderHtmlSandboxRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
@@ -72,6 +80,7 @@ export interface FileRoutesByTo {
   '/workshop': typeof AuthenticatedWorkshopIndexRoute
   '/workshop/projects/$projectId': typeof AuthenticatedWorkshopProjectsProjectIdRoute
   '/workshop/tools/page-builder': typeof AuthenticatedWorkshopToolsPageBuilderRoute
+  '/workshop/tools/page-builder/html-sandbox': typeof AuthenticatedWorkshopToolsPageBuilderHtmlSandboxRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -82,6 +91,7 @@ export interface FileRoutesById {
   '/_authenticated/workshop/': typeof AuthenticatedWorkshopIndexRoute
   '/_authenticated/workshop/projects/$projectId': typeof AuthenticatedWorkshopProjectsProjectIdRoute
   '/_authenticated/workshop/tools/page-builder': typeof AuthenticatedWorkshopToolsPageBuilderRoute
+  '/_authenticated/workshop/tools/page-builder_/html-sandbox': typeof AuthenticatedWorkshopToolsPageBuilderHtmlSandboxRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -92,6 +102,7 @@ export interface FileRouteTypes {
     | '/workshop/'
     | '/workshop/projects/$projectId'
     | '/workshop/tools/page-builder'
+    | '/workshop/tools/page-builder/html-sandbox'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +111,7 @@ export interface FileRouteTypes {
     | '/workshop'
     | '/workshop/projects/$projectId'
     | '/workshop/tools/page-builder'
+    | '/workshop/tools/page-builder/html-sandbox'
   id:
     | '__root__'
     | '/_authenticated'
@@ -109,6 +121,7 @@ export interface FileRouteTypes {
     | '/_authenticated/workshop/'
     | '/_authenticated/workshop/projects/$projectId'
     | '/_authenticated/workshop/tools/page-builder'
+    | '/_authenticated/workshop/tools/page-builder_/html-sandbox'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -166,6 +179,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkshopProjectsProjectIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/workshop/tools/page-builder_/html-sandbox': {
+      id: '/_authenticated/workshop/tools/page-builder_/html-sandbox'
+      path: '/workshop/tools/page-builder/html-sandbox'
+      fullPath: '/workshop/tools/page-builder/html-sandbox'
+      preLoaderRoute: typeof AuthenticatedWorkshopToolsPageBuilderHtmlSandboxRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -176,6 +196,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedWorkshopIndexRoute: typeof AuthenticatedWorkshopIndexRoute
   AuthenticatedWorkshopProjectsProjectIdRoute: typeof AuthenticatedWorkshopProjectsProjectIdRoute
   AuthenticatedWorkshopToolsPageBuilderRoute: typeof AuthenticatedWorkshopToolsPageBuilderRoute
+  AuthenticatedWorkshopToolsPageBuilderHtmlSandboxRoute: typeof AuthenticatedWorkshopToolsPageBuilderHtmlSandboxRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -187,6 +208,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedWorkshopProjectsProjectIdRoute,
   AuthenticatedWorkshopToolsPageBuilderRoute:
     AuthenticatedWorkshopToolsPageBuilderRoute,
+  AuthenticatedWorkshopToolsPageBuilderHtmlSandboxRoute:
+    AuthenticatedWorkshopToolsPageBuilderHtmlSandboxRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

@@ -1,6 +1,6 @@
 export function FeaturesLayout14Renderer() {
   return (
-    <section className='aspect-[1024/615] w-full bg-white text-black'>
+    <section className='h-[615px] w-[1024px] bg-white text-black'>
       <div className='grid h-full grid-cols-[0.96fr_1fr] gap-[7%] px-[5.5%] py-[7.8%]'>
         <div className='flex min-w-0 flex-col justify-center'>
           <p className='mb-4 text-[12px] leading-none font-semibold'>Tagline</p>

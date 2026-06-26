@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,6 +10,8 @@ const TARGET_ASSET = {
   name: 'Layout 14',
   imagePath: '/local-assets/page-builder/Features/Layout%2014.png',
 }
+const TARGET_WIDTH = 1024
+const TARGET_HEIGHT = 615
 
 type ComparisonMode = 'side-by-side' | 'stacked'
 
@@ -88,23 +90,63 @@ export function HtmlSandboxPage() {
             </ComparisonPanel>
 
             <ComparisonPanel title='HTML reconstruction'>
-              <div className='relative border bg-white shadow-sm'>
-                <FeaturesLayout14Renderer />
-                {overlayOpacity > 0 && (
-                  <img
-                    src={TARGET_ASSET.imagePath}
-                    alt=''
-                    aria-hidden='true'
-                    className='pointer-events-none absolute inset-0 size-full object-contain'
-                    style={{ opacity: overlayOpacity / 100 }}
-                  />
-                )}
-              </div>
+              <ScaledHtmlPreview overlayOpacity={overlayOpacity} />
             </ComparisonPanel>
           </div>
         </div>
       </div>
     </Main>
+  )
+}
+
+function ScaledHtmlPreview({ overlayOpacity }: { overlayOpacity: number }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+
+  useLayoutEffect(() => {
+    const element = containerRef.current
+    if (!element) return
+
+    const updateScale = () => {
+      const nextScale = Math.min(1, element.clientWidth / TARGET_WIDTH)
+      setScale(Number.isFinite(nextScale) ? nextScale : 1)
+    }
+
+    updateScale()
+
+    const resizeObserver = new ResizeObserver(updateScale)
+    resizeObserver.observe(element)
+
+    return () => resizeObserver.disconnect()
+  }, [])
+
+  return (
+    <div
+      ref={containerRef}
+      className='relative w-full overflow-hidden border bg-white shadow-sm'
+      style={{ height: TARGET_HEIGHT * scale }}
+    >
+      <div
+        className='absolute top-0 left-0'
+        style={{
+          width: TARGET_WIDTH,
+          height: TARGET_HEIGHT,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+        }}
+      >
+        <FeaturesLayout14Renderer />
+        {overlayOpacity > 0 && (
+          <img
+            src={TARGET_ASSET.imagePath}
+            alt=''
+            aria-hidden='true'
+            className='pointer-events-none absolute inset-0 size-full'
+            style={{ opacity: overlayOpacity / 100 }}
+          />
+        )}
+      </div>
+    </div>
   )
 }
 

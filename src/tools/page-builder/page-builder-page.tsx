@@ -1044,6 +1044,11 @@ function PageControls({
           >
             Export JSON
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => exportCodexLinkPayload(activePage, assetMap)}
+          >
+            Download Codex Link payload
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => onRenamePage(activePage)}>
             Rename page
           </DropdownMenuItem>
@@ -1371,6 +1376,31 @@ function exportPageJson(
   link.download = `${slugify(page.name || 'page')}-layouts.json`
   link.click()
   URL.revokeObjectURL(url)
+}
+
+function exportCodexLinkPayload(
+  page: PageBuilderPageModel,
+  assetMap: Map<string, PageBuilderAsset>
+) {
+  const payload = {
+    schemaVersion: ASSEMBLY_SCHEMA,
+    pageName: page.name || 'Untitled Page',
+    spacing: 0,
+    sections: page.sections.map((section) => {
+      const asset = assetMap.get(section.assetId)
+      const ref = asset
+        ? `${asset.category} / ${asset.name}`
+        : (section.unresolved?.source ?? section.assetId)
+
+      return { ref }
+    }),
+  }
+
+  downloadTextFile(
+    'codex-link-payload.json',
+    `${JSON.stringify(payload, null, 2)}\n`
+  )
+  toast.success('Codex Link payload downloaded')
 }
 
 function parseAssemblyImport(

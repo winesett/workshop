@@ -25849,32 +25849,17 @@ const EMBEDDED_REGISTRY_ITEMS = [
 ];
 const DEFAULT_RECIPE = {
   "schemaVersion": "workshop.pageBuilder.assembly.v1",
-  "pageName": "Homepage Concept 1",
+  "pageName": "Single Section Copy Probe",
   "spacing": 0,
   "sections": [
     {
-      "category": "header",
-      "selection": 1
-    },
-    {
-      "category": "hero",
-      "selection": 3
-    },
-    {
-      "category": "logos",
-      "selection": 1
-    },
-    {
-      "category": "features",
-      "selection": 2
-    },
-    {
-      "category": "cta",
-      "selection": 1
-    },
-    {
-      "category": "footer",
-      "selection": 1
+      "ref": "Hero-Headers / Header 3",
+      "copy": [
+        {
+          "index": 1,
+          "text": "Workshop copy mutation probe"
+        }
+      ]
     }
   ]
 };
@@ -25899,11 +25884,12 @@ const CODEX_LINK_PAYLOAD = {
     }
   ]
 };
+const BUILD_LABEL = "copy-diagnostics-v1";
 
 const registryItems = EMBEDDED_REGISTRY_ITEMS;
 const referencesByCategory = groupReferencesByCategory(REFERENCE_ITEMS);
 
-figma.showUI(__html__, { width: 520, height: 380 });
+figma.showUI(__html__, { width: 560, height: 520 });
 
 figma.ui.onmessage = (message) => {
   if (!message || typeof message !== "object") return;
@@ -25914,6 +25900,7 @@ figma.ui.onmessage = (message) => {
       recipe: DEFAULT_RECIPE,
       registryCount: registryItems.length,
       referenceCount: REFERENCE_ITEMS.length,
+      buildLabel: BUILD_LABEL,
     });
     return;
   }
@@ -25972,6 +25959,7 @@ async function assembleRecipe(recipe) {
 
   const importedByKey = new Map();
   const sectionNames = [];
+  const copyResults = [];
 
   for (let index = 0; index < resolvedSections.length; index += 1) {
     const section = resolvedSections[index];
@@ -25980,17 +25968,25 @@ async function assembleRecipe(recipe) {
     wrapper.appendChild(instance);
     trySet(instance, "layoutAlign", "STRETCH");
     trySet(instance, "layoutSizingHorizontal", "FILL");
+    const copyResult = await applySectionCopy(instance, section.source.copy);
     sectionNames.push(instance.name);
+    copyResults.push(copyResult);
   }
 
   figma.currentPage.selection = [wrapper];
   figma.viewport.scrollAndZoomIntoView([wrapper]);
-  figma.notify(`Assembled ${sectionNames.length} sections.`);
+  const copyOverrideCount = copyResults.reduce((total, result) => total + result.applied, 0);
+  const copyWarningCount = copyResults.reduce((total, result) => total + result.warnings.length, 0);
+  const copySummary = copyOverrideCount ? ` with ${copyOverrideCount} copy override${copyOverrideCount === 1 ? "" : "s"}` : "";
+  const warningSummary = copyWarningCount ? ` (${copyWarningCount} copy diagnostic${copyWarningCount === 1 ? "" : "s"})` : "";
+  figma.notify(`Assembled ${sectionNames.length} sections${copySummary}${warningSummary}.`);
 
   return {
     pageName: wrapper.name,
     sectionCount: sectionNames.length,
     sections: sectionNames,
+    copyOverrideCount,
+    copyDiagnostics: copyResults.flatMap((result) => result.warnings),
     width: wrapper.width,
     height: wrapper.height,
   };
@@ -26023,6 +26019,7 @@ function resolveRecipeSections(recipe) {
       order: index,
       ref,
       registryItem: directRegistryItem || findRegistryItem(ref),
+      source: typeof section === "object" && section ? section : {},
     };
   });
 }
@@ -26080,6 +26077,275 @@ async function createInstanceForRegistryItem(item, importedByKey) {
   return componentLike.type === "COMPONENT_SET"
     ? componentLike.defaultVariant.createInstance()
     : componentLike.createInstance();
+}
+
+async function applySectionCopy(root, copy) {
+  const assignments = normalizeCopyAssignments(copy);
+  if (!assignments.length) return { applied: 0, warnings: [] };
+
+  const targets = collectCopyTargets(root);
+  const usedTargets = new Set();
+  const warnings = [];
+  let applied = 0;
+
+  warnings.push(
+    `Copy target scan for ${root.name}: ${targets.filter((target) => target.kind === "textNode").length} text node(s), ${targets.filter((target) => target.kind === "componentProperty").length} text component propert${targets.filter((target) => target.kind === "componentProperty").length === 1 ? "y" : "ies"}. First targets: ${targets.slice(0, 6).map((target) => `${target.kind}:${target.name || target.path}`).join(" | ") || "none"}.`,
+  );
+
+  for (const assignment of assignments) {
+    const target = findTextTarget(targets, assignment, usedTargets);
+    if (!target) {
+      warnings.push(`No text target matched ${assignment.label}.`);
+      continue;
+    }
+
+    try {
+      await setCopyTarget(root, target, assignment.text);
+      usedTargets.add(target.id);
+      applied += 1;
+    } catch (error) {
+      warnings.push(`Could not set ${target.path}: ${readError(error)}`);
+    }
+  }
+
+  return { applied, warnings };
+}
+
+async function setCopyTarget(root, target, text) {
+  if (target.kind === "componentProperty") {
+    root.setProperties({ [target.propertyName]: text });
+    return;
+  }
+
+  await loadFontsForTextNode(target.node);
+  target.node.characters = text;
+}
+
+function normalizeCopyAssignments(copy) {
+  if (!copy) return [];
+
+  if (Array.isArray(copy)) {
+    return copy
+      .map((entry, index) => normalizeCopyAssignment(entry, index))
+      .filter(Boolean);
+  }
+
+  if (typeof copy === "object") {
+    return Object.entries(copy)
+      .map(([slot, text], index) => normalizeCopyAssignment({ slot, text }, index))
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function normalizeCopyAssignment(entry, index) {
+  if (!entry || typeof entry !== "object") return null;
+
+  const rawText = entry.text === undefined ? entry.value : entry.text;
+  if (rawText === undefined || rawText === null) return null;
+
+  const slot = cleanString(entry.slot) || cleanString(entry.role) || cleanString(entry.name) || cleanString(entry.path);
+  const role = canonicalCopyRole(cleanString(entry.role) || cleanString(entry.slot));
+
+  return {
+    text: String(rawText),
+    role,
+    slot,
+    name: cleanString(entry.name),
+    path: cleanString(entry.path),
+    contains: cleanString(entry.contains),
+    index: readPositiveInteger(entry.index),
+    label: slot || role || entry.index || `copy item ${index + 1}`,
+  };
+}
+
+function collectCopyTargets(root) {
+  return collectTextComponentProperties(root).concat(collectTextNodes(root));
+}
+
+function collectTextComponentProperties(root) {
+  if (root.type !== "INSTANCE" || !root.componentProperties) return [];
+
+  return Object.entries(root.componentProperties)
+    .filter((entry) => entry[1] && entry[1].type === "TEXT")
+    .map(([propertyName, property], index) => ({
+      id: `componentProperty:${propertyName}`,
+      kind: "componentProperty",
+      propertyName,
+      name: stripComponentPropertyId(propertyName),
+      path: `Component property > ${propertyName}`,
+      content: String(property.value || ""),
+      role: inferTextRole({ name: stripComponentPropertyId(propertyName), characters: String(property.value || "") }, propertyName),
+      position: index + 1,
+    }));
+}
+
+function collectTextNodes(root) {
+  const nodes = findTextNodes(root);
+  const textNodes = [];
+  let ctaCount = 0;
+
+  for (const node of nodes) {
+    const path = nodePath(node, root);
+    const inferredRole = inferTextRole(node, path);
+    const role = inferredRole === "cta" ? (ctaCount++ === 0 ? "primaryCta" : "secondaryCta") : inferredRole;
+    textNodes.push({
+      id: `textNode:${node.id}`,
+      kind: "textNode",
+      node,
+      name: node.name,
+      path,
+      content: node.characters,
+      role,
+      position: textNodes.length + 1,
+    });
+  }
+
+  return textNodes;
+}
+
+function findTextNodes(root) {
+  if (typeof root.findAllWithCriteria === "function") {
+    return root.findAllWithCriteria({ types: ["TEXT"] });
+  }
+
+  if (typeof root.findAll === "function") {
+    return root.findAll((node) => node.type === "TEXT");
+  }
+
+  return collectTextNodesByChildren(root);
+}
+
+function collectTextNodesByChildren(root) {
+  const found = [];
+  walkNode(root, (node) => {
+    if (node.type === "TEXT") found.push(node);
+  });
+  return found;
+}
+
+function walkNode(node, visit) {
+  visit(node);
+  if (!("children" in node)) return;
+  for (const child of node.children) walkNode(child, visit);
+}
+
+function findTextTarget(targets, assignment, usedTargets) {
+  if (assignment.index) return availableByIndex(targets, usedTargets, assignment.index);
+
+  if (assignment.path) {
+    const pathKey = normalizeKey(assignment.path);
+    const exactPath = targets.find((item) => !usedTargets.has(item.id) && normalizeKey(item.path) === pathKey);
+    if (exactPath) return exactPath;
+    const partialPath = targets.find((item) => !usedTargets.has(item.id) && normalizeKey(item.path).includes(pathKey));
+    if (partialPath) return partialPath;
+  }
+
+  if (assignment.name) {
+    const nameKey = normalizeKey(assignment.name);
+    const exactName = targets.find((item) => !usedTargets.has(item.id) && normalizeKey(item.name) === nameKey);
+    if (exactName) return exactName;
+  }
+
+  if (assignment.contains) {
+    const containsKey = normalizeKey(assignment.contains);
+    const contentMatch = targets.find((item) => !usedTargets.has(item.id) && normalizeKey(item.content).includes(containsKey));
+    if (contentMatch) return contentMatch;
+  }
+
+  if (assignment.role) {
+    const roleMatch = targets.find((item) => !usedTargets.has(item.id) && item.role === assignment.role);
+    if (roleMatch) return roleMatch;
+  }
+
+  if (assignment.slot) {
+    const slotKey = normalizeKey(assignment.slot);
+    const slotMatch = targets.find(
+      (item) =>
+        !usedTargets.has(item.id) &&
+        (normalizeKey(item.name) === slotKey || normalizeKey(item.path).includes(slotKey) || item.role === canonicalCopyRole(slotKey)),
+    );
+    if (slotMatch) return slotMatch;
+  }
+
+  return null;
+}
+
+function availableByIndex(targets, usedTargets, index) {
+  const available = targets.filter((item) => !usedTargets.has(item.id));
+  return available[index - 1] || null;
+}
+
+function nodePath(node, stopNode) {
+  const parts = [];
+  let current = node;
+
+  while (current && current !== stopNode) {
+    parts.unshift(current.name);
+    current = current.parent;
+  }
+
+  if (stopNode) parts.unshift(stopNode.name);
+  return parts.join(" > ");
+}
+
+async function loadFontsForTextNode(node) {
+  if (node.fontName && node.fontName !== figma.mixed) {
+    await figma.loadFontAsync(node.fontName);
+    return;
+  }
+
+  if (typeof node.getRangeAllFontNames === "function") {
+    const fonts = node.getRangeAllFontNames(0, node.characters.length);
+    const seen = new Set();
+    for (const font of fonts) {
+      const key = `${font.family}\n${font.style}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      await figma.loadFontAsync(font);
+    }
+  }
+}
+
+function inferTextRole(node, path) {
+  const key = normalizeKey(`${node.name} ${path} ${node.characters}`);
+  if (/eyebrow|subheading|subhead|tagline|overline|label/u.test(key)) return "eyebrow";
+  if (/button|cta|action|link/u.test(key)) return "cta";
+  if (/heading|headline|title|mediumlengthsectionheading/u.test(key)) return "heading";
+  if (/paragraph|description|body|text|lorem|supporting/u.test(key)) return "body";
+  return "";
+}
+
+function canonicalCopyRole(value) {
+  const key = normalizeKey(value);
+  const aliases = {
+    eyebrow: "eyebrow",
+    kicker: "eyebrow",
+    label: "eyebrow",
+    overline: "eyebrow",
+    heading: "heading",
+    headline: "heading",
+    title: "heading",
+    h1: "heading",
+    h2: "heading",
+    body: "body",
+    text: "body",
+    copy: "body",
+    description: "body",
+    paragraph: "body",
+    primarycta: "primaryCta",
+    primarybutton: "primaryCta",
+    cta: "primaryCta",
+    button: "primaryCta",
+    secondarycta: "secondaryCta",
+    secondarybutton: "secondaryCta",
+  };
+  return aliases[key] || "";
+}
+
+function stripComponentPropertyId(value) {
+  return String(value || "").replace(/#.+$/u, "").trim();
 }
 
 function findRegistryItem(ref) {

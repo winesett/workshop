@@ -16,7 +16,7 @@
 
       main {
         display: grid;
-        grid-template-rows: auto minmax(0, 1fr) auto;
+        grid-template-rows: auto minmax(0, 1fr) auto auto;
         gap: 14px;
         height: 100vh;
         padding: 16px;
@@ -104,6 +104,30 @@
         background: #f6f6f3;
       }
 
+      .status {
+        display: grid;
+        gap: 8px;
+        min-height: 92px;
+        max-height: 150px;
+        overflow: auto;
+        padding: 10px;
+        border: 1px solid #d2d2cc;
+        border-radius: 6px;
+        background: #fbfbfa;
+      }
+
+      .status-title {
+        font-weight: 700;
+      }
+
+      .status pre {
+        margin: 0;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        color: #3f3f3a;
+        font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
     </style>
   </head>
   <body>
@@ -118,6 +142,10 @@
         <button id="assemble" type="button">Assemble Page</button>
         <button class="secondary" id="externalWire" type="button">Codex Link</button>
       </div>
+      <section class="status" aria-live="polite">
+        <div class="status-title" id="statusTitle">Ready</div>
+        <pre id="statusDetails">No assembly run yet.</pre>
+      </section>
     </main>
 
     <script>
@@ -125,18 +153,22 @@
       const assemble = document.getElementById("assemble");
       const externalWire = document.getElementById("externalWire");
       const meta = document.getElementById("meta");
+      const statusTitle = document.getElementById("statusTitle");
+      const statusDetails = document.getElementById("statusDetails");
 
       parent.postMessage({ pluginMessage: { type: "ready" } }, "*");
 
       assemble.addEventListener("click", () => {
         assemble.textContent = "Assembling...";
         assemble.disabled = true;
+        setStatus("Assembling", "Running pasted JSON...");
         parent.postMessage({ pluginMessage: { type: "assemble-json", recipeJson: recipe.value } }, "*");
       });
 
       externalWire.addEventListener("click", () => {
         externalWire.textContent = "Assembling...";
         externalWire.disabled = true;
+        setStatus("Assembling", "Running embedded Codex Link payload...");
         parent.postMessage({ pluginMessage: { type: "external-wire" } }, "*");
       });
 
@@ -146,7 +178,8 @@
 
         if (message.type === "ready") {
           recipe.value = JSON.stringify(message.recipe, null, 2);
-          meta.textContent = `${message.referenceCount} refs, ${message.registryCount} registry keys embedded`;
+          meta.textContent = `${message.referenceCount} refs, ${message.registryCount} registry keys embedded · ${message.buildLabel || "unlabeled build"}`;
+          setStatus("Ready", `Loaded ${message.buildLabel || "unlabeled build"}.`);
           return;
         }
 
@@ -154,6 +187,7 @@
           assemble.disabled = false;
           assemble.textContent = `Created ${message.result.sectionCount} Sections`;
           window.setTimeout(() => (assemble.textContent = "Assemble Page"), 1200);
+          showResult("Assembly Complete", message.result);
           return;
         }
 
@@ -161,6 +195,7 @@
           assemble.disabled = false;
           assemble.textContent = "Assembly Failed";
           window.setTimeout(() => (assemble.textContent = "Assemble Page"), 1600);
+          setStatus("Assembly Failed", message.message || "Assembly failed.");
           alert(message.message || "Assembly failed.");
           return;
         }
@@ -169,6 +204,7 @@
           externalWire.disabled = false;
           externalWire.textContent = `Created ${message.result.sectionCount} Sections`;
           window.setTimeout(() => (externalWire.textContent = "Codex Link"), 1200);
+          showResult("Codex Link Complete", message.result);
           return;
         }
 
@@ -176,9 +212,27 @@
           externalWire.disabled = false;
           externalWire.textContent = "Codex Link Failed";
           window.setTimeout(() => (externalWire.textContent = "Codex Link"), 1600);
+          setStatus("Codex Link Failed", message.message || "Codex Link failed.");
           alert(message.message || "Codex Link failed.");
         }
       };
+
+      function showResult(title, result) {
+        const diagnostics = Array.isArray(result.copyDiagnostics) ? result.copyDiagnostics : [];
+        setStatus(
+          title,
+          [
+            `sections: ${result.sectionCount}`,
+            `copy overrides: ${result.copyOverrideCount}`,
+            `copy diagnostics: ${diagnostics.length ? diagnostics.join("\n") : "none"}`,
+          ].join("\n"),
+        );
+      }
+
+      function setStatus(title, details) {
+        statusTitle.textContent = title;
+        statusDetails.textContent = details;
+      }
     </script>
   </body>
 </html>

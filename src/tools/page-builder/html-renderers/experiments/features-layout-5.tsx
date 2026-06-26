@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react'
-import placeholderImage from './assets/placeholder-image.png'
+import placeholderLightbox from './assets/placeholder-lightbox.png'
 import { RelumeChevronIcon } from './relume-icons'
 import { relumeStyleFacts } from './relume-style-facts'
 
-export const layout1Tuning = {
+export const layout5Tuning = {
   sectionFrameWidth: 1440,
   sectionFrameHeight: 864,
   sectionPaddingX: 64,
@@ -17,14 +17,17 @@ export const layout1Tuning = {
   contentStackGap: 32,
   sectionTitleGap: 16,
   titleContentGap: 24,
+  featureGridGap: 24,
+  featureGridPaddingY: 8,
+  featureColumnGap: 16,
 } as const
 
-export function FeaturesLayout1Renderer() {
-  const styles = createLayout1Styles()
+export function FeaturesLayout5Renderer() {
+  const styles = createLayout5Styles()
 
   return (
     <section
-      aria-label='Layout / 1 /'
+      aria-label='Layout / 5 /'
       className='relume-renderer'
       style={styles.section}
     >
@@ -49,6 +52,23 @@ export function FeaturesLayout1Renderer() {
               </div>
             </div>
 
+            <div aria-label='Feature List' style={styles.featureGrid}>
+              <div aria-label='Feature Item' style={styles.featureItem}>
+                <h6 className='relume-heading-h6'>Subheading one</h6>
+                <p className='relume-text-regular'>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                  Suspendisse varius enim in eros.
+                </p>
+              </div>
+              <div aria-label='Feature Item' style={styles.featureItem}>
+                <h6 className='relume-heading-h6'>Subheading two</h6>
+                <p className='relume-text-regular'>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                  Suspendisse varius enim in eros.
+                </p>
+              </div>
+            </div>
+
             <div aria-label='Actions' className='relume-actions'>
               <button className='relume-button-primary'>Button</button>
               <button className='relume-button-link'>
@@ -58,10 +78,10 @@ export function FeaturesLayout1Renderer() {
             </div>
           </div>
 
-          <div aria-label='Placeholder Image' style={styles.mediaColumn}>
+          <div aria-label='Placeholder Lightbox' style={styles.mediaColumn}>
             <img
-              src={placeholderImage}
-              alt='Image placeholder'
+              src={placeholderLightbox}
+              alt='Video placeholder'
               style={styles.media}
             />
           </div>
@@ -71,7 +91,7 @@ export function FeaturesLayout1Renderer() {
   )
 }
 
-function createLayout1Styles() {
+function createLayout5Styles() {
   const { colors } = relumeStyleFacts
 
   return {
@@ -79,9 +99,9 @@ function createLayout1Styles() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      width: layout1Tuning.sectionFrameWidth,
-      height: layout1Tuning.sectionFrameHeight,
-      padding: `${layout1Tuning.sectionPaddingY}px ${layout1Tuning.sectionPaddingX}px`,
+      width: layout5Tuning.sectionFrameWidth,
+      height: layout5Tuning.sectionFrameHeight,
+      padding: `${layout5Tuning.sectionPaddingY}px ${layout5Tuning.sectionPaddingX}px`,
       boxSizing: 'border-box',
       background: colors.white,
       color: colors.black,
@@ -90,29 +110,29 @@ function createLayout1Styles() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-start',
-      width: layout1Tuning.containerWidth,
-      height: layout1Tuning.componentHeight,
+      width: layout5Tuning.containerWidth,
+      height: layout5Tuning.componentHeight,
     },
     component: {
       display: 'flex',
       alignItems: 'center',
-      gap: layout1Tuning.columnGap,
-      width: layout1Tuning.containerWidth,
-      height: layout1Tuning.componentHeight,
+      gap: layout5Tuning.columnGap,
+      width: layout5Tuning.containerWidth,
+      height: layout5Tuning.componentHeight,
     },
     contentColumn: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-start',
-      gap: layout1Tuning.contentStackGap,
-      width: layout1Tuning.leftColumnWidth,
+      gap: layout5Tuning.contentStackGap,
+      width: layout5Tuning.leftColumnWidth,
     },
     sectionTitle: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-start',
-      gap: layout1Tuning.sectionTitleGap,
-      width: layout1Tuning.leftColumnWidth,
+      gap: layout5Tuning.sectionTitleGap,
+      width: layout5Tuning.leftColumnWidth,
     },
     taglineWrapper: {
       display: 'flex',
@@ -122,19 +142,33 @@ function createLayout1Styles() {
     titleContent: {
       display: 'flex',
       flexDirection: 'column',
-      gap: layout1Tuning.titleContentGap,
-      width: layout1Tuning.leftColumnWidth,
+      gap: layout5Tuning.titleContentGap,
+      width: layout5Tuning.leftColumnWidth,
+    },
+    featureGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+      gap: layout5Tuning.featureGridGap,
+      width: layout5Tuning.leftColumnWidth,
+      padding: `${layout5Tuning.featureGridPaddingY}px 0`,
+      boxSizing: 'border-box',
+    },
+    featureItem: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: layout5Tuning.featureColumnGap,
+      minWidth: 0,
     },
     mediaColumn: {
-      width: layout1Tuning.mediaBlockWidth,
-      height: layout1Tuning.mediaBlockHeight,
+      width: layout5Tuning.mediaBlockWidth,
+      height: layout5Tuning.mediaBlockHeight,
     },
     media: {
       display: 'block',
-      width: layout1Tuning.mediaBlockWidth,
-      height: layout1Tuning.mediaBlockHeight,
+      width: layout5Tuning.mediaBlockWidth,
+      height: layout5Tuning.mediaBlockHeight,
       objectFit: 'fill',
-      background: colors.neutralLight,
+      background: colors.neutral,
     },
   } satisfies Record<string, CSSProperties>
 }

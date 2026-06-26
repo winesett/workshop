@@ -274,6 +274,43 @@ const relumeTextStyles = {
   },
 } as const
 
+const relumeButtonStyles = {
+  group: {
+    gap: 24,
+    height: 48,
+  },
+  primary: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    minWidth: 95.1,
+    paddingY: 12,
+    paddingX: 24,
+    borderWidth: 1,
+    borderRadius: 0,
+    textStyle: relumeTextStyles.text.regular.normal,
+  },
+  link: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 24,
+    gap: 8,
+    iconSlotSize: 24,
+    padding: 0,
+    borderWidth: 0,
+    borderRadius: 0,
+    textStyle: relumeTextStyles.text.regular.normal,
+  },
+  chevron: {
+    width: 6.69159,
+    height: 11.6166,
+    viewBox: '0 0 6.69159 11.6166',
+    path: 'M0.876953 0.5C0.977777 0.5 1.05475 0.530412 1.13281 0.608398L6.07715 5.55273C6.13104 5.60665 6.15622 5.64863 6.16797 5.67676V5.67773C6.18275 5.71329 6.19141 5.75306 6.19141 5.80176C6.19141 5.85046 6.18275 5.89022 6.16797 5.92578V5.92676C6.15621 5.95488 6.13103 5.99687 6.07715 6.05078L1.1084 11.0195C1.03063 11.0973 0.963491 11.1192 0.882813 11.1162C0.788784 11.1127 0.707921 11.0809 0.62207 10.9951C0.543947 10.917 0.512697 10.8402 0.512695 10.7393C0.512695 10.6384 0.543945 10.5615 0.62207 10.4834L5.30371 5.80176L0.59668 1.09473C0.519014 1.01703 0.497072 0.95072 0.5 0.870117C0.503448 0.77585 0.536015 0.694453 0.62207 0.608398C0.699995 0.530589 0.776363 0.500076 0.876953 0.5Z',
+  },
+} as const
+
 export const relumeStyleFacts = {
   fontFamily: relumeFontFamily,
   colors: {
@@ -293,6 +330,7 @@ export const relumeStyleFacts = {
     radiusMedium: 0,
     radiusLarge: 0,
   },
+  buttons: relumeButtonStyles,
   layout: {
     containerSmall: 768,
     containerMedium: 1024,

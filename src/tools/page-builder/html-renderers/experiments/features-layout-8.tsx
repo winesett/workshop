@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react'
-import placeholderImage from './assets/placeholder-image.png'
-import { RelumeChevronIcon } from './relume-icons'
+import placeholderLightbox from './assets/placeholder-lightbox.png'
+import { RelumeChevronIcon, RelumeCubeIcon } from './relume-icons'
 import { relumeStyleFacts } from './relume-style-facts'
 
-export const layout1Tuning = {
+export const layout8Tuning = {
   sectionFrameWidth: 1440,
   sectionFrameHeight: 864,
   sectionPaddingX: 64,
@@ -17,14 +17,18 @@ export const layout1Tuning = {
   contentStackGap: 32,
   sectionTitleGap: 16,
   titleContentGap: 24,
+  featureGridGap: 24,
+  featureGridPaddingY: 8,
+  featureIconGap: 16,
+  featureTextGap: 16,
 } as const
 
-export function FeaturesLayout1Renderer() {
-  const styles = createLayout1Styles()
+export function FeaturesLayout8Renderer() {
+  const styles = createLayout8Styles()
 
   return (
     <section
-      aria-label='Layout / 1 /'
+      aria-label='Layout / 8 /'
       className='relume-renderer'
       style={styles.section}
     >
@@ -49,6 +53,11 @@ export function FeaturesLayout1Renderer() {
               </div>
             </div>
 
+            <div aria-label='Feature List' style={styles.featureGrid}>
+              <FeatureItem title='Subheading one' />
+              <FeatureItem title='Subheading two' />
+            </div>
+
             <div aria-label='Actions' className='relume-actions'>
               <button className='relume-button-primary'>Button</button>
               <button className='relume-button-link'>
@@ -58,10 +67,10 @@ export function FeaturesLayout1Renderer() {
             </div>
           </div>
 
-          <div aria-label='Placeholder Image' style={styles.mediaColumn}>
+          <div aria-label='Placeholder Lightbox' style={styles.mediaColumn}>
             <img
-              src={placeholderImage}
-              alt='Image placeholder'
+              src={placeholderLightbox}
+              alt='Video placeholder'
               style={styles.media}
             />
           </div>
@@ -71,7 +80,26 @@ export function FeaturesLayout1Renderer() {
   )
 }
 
-function createLayout1Styles() {
+function FeatureItem({ title }: { title: string }) {
+  const styles = createLayout8Styles()
+
+  return (
+    <div aria-label='Feature Item' style={styles.featureItem}>
+      <span aria-label='Icon Wrapper' style={styles.featureIcon}>
+        <RelumeCubeIcon />
+      </span>
+      <div aria-label='Content' style={styles.featureText}>
+        <h6 className='relume-heading-h6'>{title}</h6>
+        <p className='relume-text-regular'>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
+          varius enim in eros.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function createLayout8Styles() {
   const { colors } = relumeStyleFacts
 
   return {
@@ -79,9 +107,9 @@ function createLayout1Styles() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      width: layout1Tuning.sectionFrameWidth,
-      height: layout1Tuning.sectionFrameHeight,
-      padding: `${layout1Tuning.sectionPaddingY}px ${layout1Tuning.sectionPaddingX}px`,
+      width: layout8Tuning.sectionFrameWidth,
+      height: layout8Tuning.sectionFrameHeight,
+      padding: `${layout8Tuning.sectionPaddingY}px ${layout8Tuning.sectionPaddingX}px`,
       boxSizing: 'border-box',
       background: colors.white,
       color: colors.black,
@@ -90,29 +118,29 @@ function createLayout1Styles() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-start',
-      width: layout1Tuning.containerWidth,
-      height: layout1Tuning.componentHeight,
+      width: layout8Tuning.containerWidth,
+      height: layout8Tuning.componentHeight,
     },
     component: {
       display: 'flex',
       alignItems: 'center',
-      gap: layout1Tuning.columnGap,
-      width: layout1Tuning.containerWidth,
-      height: layout1Tuning.componentHeight,
+      gap: layout8Tuning.columnGap,
+      width: layout8Tuning.containerWidth,
+      height: layout8Tuning.componentHeight,
     },
     contentColumn: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-start',
-      gap: layout1Tuning.contentStackGap,
-      width: layout1Tuning.leftColumnWidth,
+      gap: layout8Tuning.contentStackGap,
+      width: layout8Tuning.leftColumnWidth,
     },
     sectionTitle: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-start',
-      gap: layout1Tuning.sectionTitleGap,
-      width: layout1Tuning.leftColumnWidth,
+      gap: layout8Tuning.sectionTitleGap,
+      width: layout8Tuning.leftColumnWidth,
     },
     taglineWrapper: {
       display: 'flex',
@@ -122,19 +150,47 @@ function createLayout1Styles() {
     titleContent: {
       display: 'flex',
       flexDirection: 'column',
-      gap: layout1Tuning.titleContentGap,
-      width: layout1Tuning.leftColumnWidth,
+      gap: layout8Tuning.titleContentGap,
+      width: layout8Tuning.leftColumnWidth,
+    },
+    featureGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+      gap: layout8Tuning.featureGridGap,
+      width: layout8Tuning.leftColumnWidth,
+      padding: `${layout8Tuning.featureGridPaddingY}px 0`,
+      boxSizing: 'border-box',
+    },
+    featureItem: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: layout8Tuning.featureIconGap,
+      minWidth: 0,
+    },
+    featureIcon: {
+      display: 'flex',
+      width: 32,
+      height: 32,
+      flexShrink: 0,
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
+    featureText: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: layout8Tuning.featureTextGap,
+      width: 240,
     },
     mediaColumn: {
-      width: layout1Tuning.mediaBlockWidth,
-      height: layout1Tuning.mediaBlockHeight,
+      width: layout8Tuning.mediaBlockWidth,
+      height: layout8Tuning.mediaBlockHeight,
     },
     media: {
       display: 'block',
-      width: layout1Tuning.mediaBlockWidth,
-      height: layout1Tuning.mediaBlockHeight,
+      width: layout8Tuning.mediaBlockWidth,
+      height: layout8Tuning.mediaBlockHeight,
       objectFit: 'fill',
-      background: colors.neutralLight,
+      background: colors.neutral,
     },
   } satisfies Record<string, CSSProperties>
 }

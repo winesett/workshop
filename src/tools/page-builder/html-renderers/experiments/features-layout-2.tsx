@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react'
-import placeholderImage from './assets/placeholder-image.png'
+import placeholderLightbox from './assets/placeholder-lightbox.png'
 import { RelumeChevronIcon } from './relume-icons'
 import { relumeStyleFacts } from './relume-style-facts'
 
-export const layout1Tuning = {
+export const layout2Tuning = {
   sectionFrameWidth: 1440,
   sectionFrameHeight: 864,
   sectionPaddingX: 64,
@@ -19,12 +19,12 @@ export const layout1Tuning = {
   titleContentGap: 24,
 } as const
 
-export function FeaturesLayout1Renderer() {
-  const styles = createLayout1Styles()
+export function FeaturesLayout2Renderer() {
+  const styles = createLayout2Styles()
 
   return (
     <section
-      aria-label='Layout / 1 /'
+      aria-label='Layout / 2 /'
       className='relume-renderer'
       style={styles.section}
     >
@@ -58,10 +58,10 @@ export function FeaturesLayout1Renderer() {
             </div>
           </div>
 
-          <div aria-label='Placeholder Image' style={styles.mediaColumn}>
+          <div aria-label='Placeholder Lightbox' style={styles.mediaColumn}>
             <img
-              src={placeholderImage}
-              alt='Image placeholder'
+              src={placeholderLightbox}
+              alt='Video placeholder'
               style={styles.media}
             />
           </div>
@@ -71,7 +71,7 @@ export function FeaturesLayout1Renderer() {
   )
 }
 
-function createLayout1Styles() {
+function createLayout2Styles() {
   const { colors } = relumeStyleFacts
 
   return {
@@ -79,9 +79,9 @@ function createLayout1Styles() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      width: layout1Tuning.sectionFrameWidth,
-      height: layout1Tuning.sectionFrameHeight,
-      padding: `${layout1Tuning.sectionPaddingY}px ${layout1Tuning.sectionPaddingX}px`,
+      width: layout2Tuning.sectionFrameWidth,
+      height: layout2Tuning.sectionFrameHeight,
+      padding: `${layout2Tuning.sectionPaddingY}px ${layout2Tuning.sectionPaddingX}px`,
       boxSizing: 'border-box',
       background: colors.white,
       color: colors.black,
@@ -90,29 +90,29 @@ function createLayout1Styles() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-start',
-      width: layout1Tuning.containerWidth,
-      height: layout1Tuning.componentHeight,
+      width: layout2Tuning.containerWidth,
+      height: layout2Tuning.componentHeight,
     },
     component: {
       display: 'flex',
       alignItems: 'center',
-      gap: layout1Tuning.columnGap,
-      width: layout1Tuning.containerWidth,
-      height: layout1Tuning.componentHeight,
+      gap: layout2Tuning.columnGap,
+      width: layout2Tuning.containerWidth,
+      height: layout2Tuning.componentHeight,
     },
     contentColumn: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-start',
-      gap: layout1Tuning.contentStackGap,
-      width: layout1Tuning.leftColumnWidth,
+      gap: layout2Tuning.contentStackGap,
+      width: layout2Tuning.leftColumnWidth,
     },
     sectionTitle: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-start',
-      gap: layout1Tuning.sectionTitleGap,
-      width: layout1Tuning.leftColumnWidth,
+      gap: layout2Tuning.sectionTitleGap,
+      width: layout2Tuning.leftColumnWidth,
     },
     taglineWrapper: {
       display: 'flex',
@@ -122,19 +122,19 @@ function createLayout1Styles() {
     titleContent: {
       display: 'flex',
       flexDirection: 'column',
-      gap: layout1Tuning.titleContentGap,
-      width: layout1Tuning.leftColumnWidth,
+      gap: layout2Tuning.titleContentGap,
+      width: layout2Tuning.leftColumnWidth,
     },
     mediaColumn: {
-      width: layout1Tuning.mediaBlockWidth,
-      height: layout1Tuning.mediaBlockHeight,
+      width: layout2Tuning.mediaBlockWidth,
+      height: layout2Tuning.mediaBlockHeight,
     },
     media: {
       display: 'block',
-      width: layout1Tuning.mediaBlockWidth,
-      height: layout1Tuning.mediaBlockHeight,
+      width: layout2Tuning.mediaBlockWidth,
+      height: layout2Tuning.mediaBlockHeight,
       objectFit: 'fill',
-      background: colors.neutralLight,
+      background: colors.neutral,
     },
   } satisfies Record<string, CSSProperties>
 }

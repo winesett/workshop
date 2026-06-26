@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -116,12 +116,46 @@ export function HtmlSandboxPage() {
 }
 
 function ArtboardFrame({ children }: { children: ReactNode }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+
+  useLayoutEffect(() => {
+    const element = containerRef.current
+    if (!element) return
+
+    const updateScale = () => {
+      const nextScale = Math.min(
+        1,
+        Math.max(0.1, element.clientWidth / TARGET_WIDTH)
+      )
+      setScale(Number.isFinite(nextScale) ? nextScale : 1)
+    }
+
+    updateScale()
+
+    const resizeObserver = new ResizeObserver(updateScale)
+    resizeObserver.observe(element)
+
+    return () => resizeObserver.disconnect()
+  }, [])
+
   return (
     <div
-      className='relative overflow-auto border bg-white shadow-sm'
-      style={{ width: TARGET_WIDTH, height: TARGET_HEIGHT }}
+      ref={containerRef}
+      className='relative w-full overflow-hidden border bg-white shadow-sm'
+      style={{ height: TARGET_HEIGHT * scale }}
     >
-      <div className='absolute top-0 left-0 size-full'>{children}</div>
+      <div
+        className='absolute top-0 left-0'
+        style={{
+          width: TARGET_WIDTH,
+          height: TARGET_HEIGHT,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+        }}
+      >
+        {children}
+      </div>
     </div>
   )
 }

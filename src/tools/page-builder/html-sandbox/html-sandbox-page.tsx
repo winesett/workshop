@@ -3,15 +3,18 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Main } from '@/components/layout/main'
-import { FeaturesLayout14Renderer } from '../html-renderers/experiments/features-layout-14'
+import {
+  FeaturesLayout14Renderer,
+  layout14Tuning,
+} from '../html-renderers/experiments/features-layout-14'
 
 const TARGET_ASSET = {
   category: 'Features',
   name: 'Layout 14',
   imagePath: '/local-assets/page-builder/Features/Layout%2014.png',
 }
-const TARGET_WIDTH = 1440
-const TARGET_HEIGHT = 860
+const TARGET_WIDTH = layout14Tuning.sectionFrameWidth
+const TARGET_HEIGHT = layout14Tuning.sectionFrameHeight
 
 type ComparisonMode = 'side-by-side' | 'stacked'
 

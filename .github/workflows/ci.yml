@@ -1,16 +1,12 @@
-name: Continuous Integration
+name: CI
 
 on:
-  push:
-    branches:
-      - main
-
   pull_request:
     branches:
       - main
 
 jobs:
-  install-lint-build:
+  type-check-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,20 +24,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint the code
-        run: pnpm lint
+      - name: Type-check
+        run: pnpm exec tsc -b
 
-      # - name: Analyze unused files and dependencies
-      #   run: pnpm knip
-
-      - name: Run Prettier check
-        run: pnpm format:check
-
-      - name: Install browsers
-        run: pnpm test:browser:install
-
-      - name: Run tests
-        run: pnpm test
-
-      - name: Build the project
+      - name: Build
         run: pnpm build

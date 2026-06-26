@@ -189,9 +189,9 @@ function createLayout14Styles() {
     body: {
       margin: 0,
       maxWidth: layout14Tuning.textBlockWidth,
-      fontSize: typography.textRegular.fontSize,
-      lineHeight: typography.textRegular.lineHeight,
-      fontWeight: typography.textRegular.fontWeight,
+      fontSize: typography.textMedium.fontSize,
+      lineHeight: typography.textMedium.lineHeight,
+      fontWeight: typography.textMedium.fontWeight,
       letterSpacing: 0,
     },
     logoRow: {

@@ -4,17 +4,17 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Main } from '@/components/layout/main'
 import {
-  FeaturesLayout14Renderer,
-  layout14Tuning,
-} from '../html-renderers/experiments/features-layout-14'
+  FeaturesLayout1Renderer,
+  layout1Tuning,
+} from '../html-renderers/experiments/features-layout-1'
 
 const TARGET_ASSET = {
   category: 'Features',
-  name: 'Layout 14',
-  imagePath: '/local-assets/page-builder/Features/Layout%2014.png',
+  name: 'Layout 1',
+  imagePath: '/local-assets/page-builder/Features/Layout%201.png',
 }
-const TARGET_WIDTH = layout14Tuning.sectionFrameWidth
-const TARGET_HEIGHT = layout14Tuning.sectionFrameHeight
+const TARGET_WIDTH = layout1Tuning.sectionFrameWidth
+const TARGET_HEIGHT = layout1Tuning.sectionFrameHeight
 
 type ComparisonMode = 'side-by-side' | 'stacked'
 
@@ -96,7 +96,7 @@ export function HtmlSandboxPage() {
 
             <ComparisonPanel title='HTML reconstruction'>
               <ArtboardFrame>
-                <FeaturesLayout14Renderer />
+                <FeaturesLayout1Renderer />
                 {overlayOpacity > 0 && (
                   <img
                     src={TARGET_ASSET.imagePath}

@@ -77,20 +77,33 @@ export function HtmlSandboxPage() {
           <div
             className={
               mode === 'side-by-side'
-                ? 'grid gap-6 xl:grid-cols-2'
+                ? 'grid gap-6 lg:grid-cols-2'
                 : 'mx-auto grid max-w-5xl gap-6'
             }
           >
             <ComparisonPanel title='Original screenshot reference'>
-              <img
-                src={TARGET_ASSET.imagePath}
-                alt={`${TARGET_ASSET.category} ${TARGET_ASSET.name}`}
-                className='block w-full border bg-white shadow-sm'
-              />
+              <ScaledArtboardFrame>
+                <img
+                  src={TARGET_ASSET.imagePath}
+                  alt={`${TARGET_ASSET.category} ${TARGET_ASSET.name}`}
+                  className='block size-full bg-white'
+                />
+              </ScaledArtboardFrame>
             </ComparisonPanel>
 
             <ComparisonPanel title='HTML reconstruction'>
-              <ScaledHtmlPreview overlayOpacity={overlayOpacity} />
+              <ScaledArtboardFrame>
+                <FeaturesLayout14Renderer />
+                {overlayOpacity > 0 && (
+                  <img
+                    src={TARGET_ASSET.imagePath}
+                    alt=''
+                    aria-hidden='true'
+                    className='pointer-events-none absolute inset-0 size-full bg-white'
+                    style={{ opacity: overlayOpacity / 100 }}
+                  />
+                )}
+              </ScaledArtboardFrame>
             </ComparisonPanel>
           </div>
         </div>
@@ -99,7 +112,7 @@ export function HtmlSandboxPage() {
   )
 }
 
-function ScaledHtmlPreview({ overlayOpacity }: { overlayOpacity: number }) {
+function ScaledArtboardFrame({ children }: { children: ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
 
@@ -108,7 +121,10 @@ function ScaledHtmlPreview({ overlayOpacity }: { overlayOpacity: number }) {
     if (!element) return
 
     const updateScale = () => {
-      const nextScale = Math.min(1, element.clientWidth / TARGET_WIDTH)
+      const nextScale = Math.min(
+        1,
+        Math.max(0.1, element.clientWidth / TARGET_WIDTH)
+      )
       setScale(Number.isFinite(nextScale) ? nextScale : 1)
     }
 
@@ -135,16 +151,7 @@ function ScaledHtmlPreview({ overlayOpacity }: { overlayOpacity: number }) {
           transformOrigin: 'top left',
         }}
       >
-        <FeaturesLayout14Renderer />
-        {overlayOpacity > 0 && (
-          <img
-            src={TARGET_ASSET.imagePath}
-            alt=''
-            aria-hidden='true'
-            className='pointer-events-none absolute inset-0 size-full'
-            style={{ opacity: overlayOpacity / 100 }}
-          />
-        )}
+        {children}
       </div>
     </div>
   )
